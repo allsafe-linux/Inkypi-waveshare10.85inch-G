@@ -1,0 +1,198 @@
+{
+    "name": "pizero",
+    "orientation": "horizontal",
+    "inverted_image": "on",
+    "scheduler_sleep_time": 60,
+    "startup": false,
+    "display_type": "epd10in85g",
+    "playlist_config": {
+        "playlists": [
+            {
+                "name": "Default",
+                "start_time": "00:00",
+                "end_time": "24:00",
+                "plugins": [
+                    {
+                        "plugin_id": "todo_list",
+                        "name": "\u5f85\u529e",
+                        "plugin_settings": {
+                            "title": "",
+                            "listStyle": "lower-alpha",
+                            "fontSize": "normal",
+                            "columns": "auto",
+                            "list-title[]": [
+                                "\u5de5\u4f5c\u8ba1\u5212",
+                                "\u5b66\u4e60\u4efb\u52a1",
+                                "\u9605\u8bfb\u8ba1\u5212",
+                                "\u6bcf\u65e5\u751f\u6d3b"
+                            ],
+                            "list-font[]": [
+                                "ChineseKaTong",
+                                "ChineseKaTong",
+                                "ChineseKaTong",
+                                "ChineseKaTong"
+                            ],
+                            "list-text-color[]": [
+                                "white",
+                                "black",
+                                "white",
+                                "black"
+                            ],
+                            "list-bg-color[]": [
+                                "red",
+                                "yellow",
+                                "black",
+                                "white"
+                            ],
+                            "list[]": [
+                                "",
+                                "",
+                                "",
+                                ""
+                            ],
+                            "selectedFrame": "None",
+                            "topMargin": "",
+                            "bottomMargin": "",
+                            "leftMargin": "",
+                            "rightMargin": "",
+                            "backgroundColor": "#ffffff",
+                            "backgroundOption": "image",
+                            "textColor": "#000000",
+                            "backgroundImageFile": "/usr/local/inkypi/src/static/images/saved/\u6570\u5b57\u80cc\u666f.png"
+                        },
+                        "refresh": {
+                            "interval": 7200
+                        }
+                    },
+                    {
+                        "plugin_id": "menu",
+                        "name": "\u83dc\u5355",
+                        "plugin_settings": {
+                            "menuTitle": "HACK!NG & COFFEE",
+                            "layoutMode": "grid",
+                            "menuColumns": "auto",
+                            "priceColor": "red",
+                            "showDesc": "1",
+                            "showCategory": "1",
+                            "bgSource": "color",
+                            "bgColor": "#ffffff",
+                            "bgGradFrom": "#ffffff",
+                            "bgGradTo": "#ffff00",
+                            "bgGradDir": "v",
+                            "bgImageFile": "/usr/local/inkypi/src/static/images/saved/cafe_bg_demo.jpg",
+                            "bgImageURL": "",
+                            "bgDepth": "0",
+                            "item-cat[]": [
+                                "\u5496\u5561",
+                                "\u5496\u5561",
+                                "\u5496\u5561",
+                                "\u5496\u5561",
+                                "\u5496\u5561",
+                                "\u5496\u5561",
+                                "\u5496\u5561",
+                                "\u5496\u5561",
+                                "\u8f7b\u98df",
+                                "\u8f7b\u98df",
+                                "\u751c\u70b9",
+                                "\u751c\u70b9"
+                            ],
+                            "item-name[]": [
+                                "\u7f8e\u5f0f\u5496\u5561",
+                                "\u62ff\u94c1",
+                                "\u624b\u51b2\u8036\u52a0\u96ea\u83f2",
+                                "\u8309\u8389\u51b7\u8403",
+                                "\u6842\u82b1\u4e4c\u9f99",
+                                "\u73ab\u7470\u62ff\u94c1",
+                                "\u9999\u8349\u62ff\u94c1",
+                                "\u610f\u5f0f\u62ff\u94c1",
+                                "\u53ef\u9882",
+                                "\u725b\u6cb9\u679c\u4e09\u660e\u6cbb",
+                                "\u5df4\u65af\u514b\u829d\u58eb",
+                                "\u5976\u916a\u829d\u58eb\u53cc\u5c42\u5b9d"
+                            ],
+                            "item-price[]": [
+                                "18",
+                                "22",
+                                "38",
+                                "16",
+                                "15",
+                                "20",
+                                "22",
+                                "24",
+                                "12",
+                                "28",
+                                "26",
+                                "25"
+                            ],
+                            "item-desc[]": [
+                                "\u53cc\u4efd\u6d53\u7f29\uff0c\u9178\u751c\u5e73\u8861",
+                                "\u7ef5\u5bc6\u5976\u6ce1\uff0c\u575a\u679c\u5c3e\u97f5",
+                                "\u67d1\u6a58\u4e0e\u82b1\u9999\u73b0\u51b2",
+                                "\u4f4e\u6e29\u6ce1\u516d\u5c0f\u65f6\uff0c\u6e05\u51bd\u56de\u7518",
+                                "\u6e29\u70ed\u8336\u9999\uff0c\u751c\u800c\u4e0d\u817b",
+                                "\u73ab\u7470\u9999\u5473",
+                                "\u80dc\u8fc7\u661f\u5df4\u514b",
+                                "\u610f\u5927\u5229\u7684\u590f\u5929",
+                                "\u6bcf\u65e5\u73b0\u70e4\uff0c\u9ec4\u6cb9\u9999",
+                                "\u725b\u6cb9\u679c\u3001\u9e21\u86cb\u3001\u829d\u9ebb\u83dc",
+                                "\u7126\u9999\u8868\u5c42\uff0c\u5185\u91cc\u6d41\u5fc3",
+                                "\u751c\u817b\u5165\u5fc3\u5165\u8111"
+                            ]
+                        },
+                        "refresh": {
+                            "interval": 3600
+                        }
+                    }
+                ],
+                "current_plugin_index": 1
+            }
+        ],
+        "active_playlist": "Default"
+    },
+    "refresh_info": {
+        "refresh_time": "",
+        "image_hash": "",
+        "refresh_type": "",
+        "plugin_id": ""
+    },
+    "log_system_stats": null,
+    "timezone": "Asia/Shanghai",
+    "time_format": "24h",
+    "plugin_cycle_interval_seconds": 300,
+    "image_settings": {
+        "saturation": 1.0,
+        "brightness": 1.0,
+        "sharpness": 1.0,
+        "contrast": 1.0
+    },
+    "resolution": [
+        1360,
+        480
+    ],
+    "plugin_order": [
+        "wifi_setup",
+        "weather",
+        "calendar",
+        "duo_calendar",
+        "menu",
+        "todo_list",
+        "meeting",
+        "github",
+        "image_upload",
+        "image_url",
+        "image_album",
+        "image_folder",
+        "ai_image",
+        "ai_text",
+        "apod",
+        "clock",
+        "countdown",
+        "wpotd",
+        "newspaper",
+        "rss",
+        "comic",
+        "screenshot",
+        "unsplash",
+        "year_progress"
+    ]
+}

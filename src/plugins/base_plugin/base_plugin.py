@@ -101,4 +101,5 @@ class BasePlugin:
         template = self.env.get_template(html_file)
         rendered_html = template.render(template_params)
 
-        return take_screenshot_html(rendered_html, dimensions)
+        # PATCH: 显式传入渲染超时，避免 chromium 异常时请求无限挂起
+        return take_screenshot_html(rendered_html, dimensions, timeout_ms=180000)

@@ -1,0 +1,22 @@
+[Unit]
+Description=InkyPi WiFi Setup Service (开机二维码配网)
+Documentation=file:///usr/local/inkypi/bin/wifi_setup_daemon.py
+After=NetworkManager.service
+Wants=NetworkManager.service
+
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/local/inkypi/venv_inkypi/bin/python /usr/local/inkypi/bin/wifi_setup_daemon.py
+Restart=always
+RestartSec=10
+KillSignal=SIGINT
+RuntimeDirectory=inkypi
+RuntimeDirectoryPreserve=yes
+StandardOutput=journal
+StandardError=journal
+CPUQuota=25%
+MemoryMax=120M
+
+[Install]
+WantedBy=multi-user.target

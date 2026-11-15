@@ -5,6 +5,9 @@ from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
 
+# 墨水屏保护：两次刷新至少间隔 180 秒（Waveshare FAQ），避免残影累积。
+MIN_REFRESH_INTERVAL_SECONDS = 180  # 3 minutes
+
 class RefreshInfo:
     """Keeps track of refresh metadata.
 
@@ -302,8 +305,12 @@ class PluginInstance:
         # Check for interval-based refresh
         if "interval" in self.refresh:
             interval = self.refresh.get("interval")
-            if interval and (current_time - latest_refresh_dt) >= timedelta(seconds=interval):
-                return True
+            if interval:
+                # PATCH: enforce minimum refresh interval per Waveshare FAQ
+                # (refresh at least every 180s to protect the e-paper panel)
+                effective_interval = max(interval, MIN_REFRESH_INTERVAL_SECONDS)
+                if (current_time - latest_refresh_dt) >= timedelta(seconds=effective_interval):
+                    return True
 
         # Check for scheduled refresh (HH:MM format)
         if "scheduled" in self.refresh:

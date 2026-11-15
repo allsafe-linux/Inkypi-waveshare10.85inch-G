@@ -169,6 +169,15 @@ mock_display_output/
 # IDE files
 .idea
 
-# Static Files added by install/update_vendors.sh
-/src/static/scripts/
-/src/static/styles/
+# 第三方库：install/update_vendors.sh 现场拉取，不入库。
+# ★ 注意：src/static/scripts/ 与 src/static/styles/ 这两个目录**不能整目录排除** ——
+#   上游 main.css / dark_mode.js / image_modal.js / refresh_settings_manager.js /
+#   response_modal.js 是**被上游 git 跟踪的**（网页端要用），只是上游的 .gitignore
+#   同时又写了整目录排除规则 —— 靠「已跟踪所以不受 gitignore 影响」侥幸没事。
+#   一旦换成一个全新仓库（git init + git add -A），这 5 个文件就会被漏掉，
+#   克隆下来网页端没有样式和脚本。
+/src/static/scripts/select2.min.js
+/src/static/scripts/jquery.min.js
+/src/static/scripts/chart.js
+/src/static/scripts/calendar.min.js
+/src/static/styles/select2.min.css
