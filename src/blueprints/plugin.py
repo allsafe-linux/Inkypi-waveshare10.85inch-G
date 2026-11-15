@@ -48,7 +48,7 @@ def plugin_page(plugin_id):
             if plugin_instance_name:
                 plugin_instance = playlist_manager.find_plugin(plugin_id, plugin_instance_name)
                 if not plugin_instance:
-                    return jsonify({"error": f"Plugin instance: {plugin_instance_name} does not exist"}), 500
+                    return jsonify({"error": f"插件实例：{plugin_instance_name} 不存在"}), 500
 
                 # add plugin instance settings to the template to prepopulate
                 template_params["plugin_settings"] = plugin_instance.settings
@@ -58,10 +58,10 @@ def plugin_page(plugin_id):
             template_params["playlists"] = playlist_manager.get_playlist_names()
         except Exception as e:
             logger.exception("EXCEPTION CAUGHT: " + str(e))
-            return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+            return jsonify({"error": f"出错了：{str(e)}"}), 500
         return render_template('plugin.html', plugin=plugin_config, **template_params)
     else:
-        return "Plugin not found", 404
+        return "找不到插件", 404
 
 @plugin_bp.route('/images/<plugin_id>/<path:filename>')
 def image(plugin_id, filename):
@@ -82,7 +82,7 @@ def image(plugin_id, filename):
     # Check if the directory and file exist
     if not os.path.isdir(abs_plugin_dir):
         logger.error(f"Plugin directory not found: {abs_plugin_dir}")
-        return "Plugin directory not found", 404
+        return "找不到插件目录", 404
 
     if not os.path.isfile(safe_path):
         logger.error(f"File not found: {safe_path}")
@@ -100,11 +100,11 @@ def plugin_instance_image(playlist_name, plugin_id, instance_name):
     # Find the plugin instance
     playlist = playlist_manager.get_playlist(playlist_name)
     if not playlist:
-        return "Playlist not found", 404
+        return "找不到播放列表", 404
 
     plugin_instance = playlist.find_plugin(plugin_id, instance_name)
     if not plugin_instance:
-        return "Plugin instance not found", 404
+        return "找不到插件实例", 404
 
     # Get the image path
     image_filename = plugin_instance.get_image_path()
@@ -131,28 +131,28 @@ def delete_plugin_instance():
     try:
         playlist = playlist_manager.get_playlist(playlist_name)
         if not playlist:
-            return jsonify({"success": False, "message": "Playlist not found"}), 400
+            return jsonify({"success": False, "message": "找不到播放列表"}), 400
 
         # Get the plugin instance to find associated images
         plugin_instance_obj = playlist.find_plugin(plugin_id, plugin_instance)
         if not plugin_instance_obj:
-            return jsonify({"success": False, "message": "Plugin instance not found"}), 400
+            return jsonify({"success": False, "message": "找不到插件实例"}), 400
 
         # Delete associated images before removing from playlist
         _delete_plugin_instance_images(device_config, plugin_instance_obj)
 
         result = playlist.delete_plugin(plugin_id, plugin_instance)
         if not result:
-            return jsonify({"success": False, "message": "Plugin instance not found"}), 400
+            return jsonify({"success": False, "message": "找不到插件实例"}), 400
 
         # save changes to device config file
         device_config.write_config()
 
     except Exception as e:
         logger.exception("EXCEPTION CAUGHT: " + str(e))
-        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+        return jsonify({"error": f"出错了：{str(e)}"}), 500
 
-    return jsonify({"success": True, "message": "Deleted plugin instance."})
+    return jsonify({"success": True, "message": "插件实例已删除。"})
 
 @plugin_bp.route('/update_plugin_instance/<string:instance_name>', methods=['PUT'])
 def update_plugin_instance(instance_name):
@@ -163,12 +163,12 @@ def update_plugin_instance(instance_name):
         form_data = parse_form(request.form)
 
         if not instance_name:
-            raise RuntimeError("Instance name is required")
+            raise RuntimeError("必须填写实例名称")
 
         plugin_id = form_data.pop("plugin_id")
         plugin_instance = playlist_manager.find_plugin(plugin_id, instance_name)
         if not plugin_instance:
-            return jsonify({"error": f"Plugin instance: {instance_name} does not exist"}), 500
+            return jsonify({"error": f"插件实例：{instance_name} 不存在"}), 500
 
         # Handle refresh settings if provided
         refresh_settings_json = form_data.pop("refresh_settings", None)
@@ -197,8 +197,8 @@ def update_plugin_instance(instance_name):
 
         device_config.write_config()
     except Exception as e:
-        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
-    return jsonify({"success": True, "message": f"Updated plugin instance {instance_name}."})
+        return jsonify({"error": f"出错了：{str(e)}"}), 500
+    return jsonify({"success": True, "message": f"插件实例 {instance_name} 已更新。"})
 
 @plugin_bp.route('/display_plugin_instance', methods=['POST'])
 def display_plugin_instance():
@@ -214,17 +214,17 @@ def display_plugin_instance():
     try:
         playlist = playlist_manager.get_playlist(playlist_name)
         if not playlist:
-            return jsonify({"success": False, "message": f"Playlist {playlist_name} not found"}), 400
+            return jsonify({"success": False, "message": f"找不到播放列表 {playlist_name}"}), 400
 
         plugin_instance = playlist.find_plugin(plugin_id, plugin_instance_name)
         if not plugin_instance:
-            return jsonify({"success": False, "message": f"Plugin instance '{plugin_instance_name}' not found"}), 400
+            return jsonify({"success": False, "message": f"插件实例 '{plugin_instance_name}' 不存在"}), 400
 
         refresh_task.manual_update(PlaylistRefresh(playlist, plugin_instance, force=True))
     except Exception as e:
-        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+        return jsonify({"error": f"出错了：{str(e)}"}), 500
 
-    return jsonify({"success": True, "message": "Display updated"}), 200
+    return jsonify({"success": True, "message": "显示已更新"}), 200
 
 @plugin_bp.route('/update_now', methods=['POST'])
 def update_now():
@@ -245,7 +245,7 @@ def update_now():
             logger.info("Refresh task not running, updating display directly")
             plugin_config = device_config.get_plugin(plugin_id)
             if not plugin_config:
-                return jsonify({"error": f"Plugin '{plugin_id}' not found"}), 404
+                return jsonify({"error": f"插件 '{plugin_id}' 不存在"}), 404
 
             plugin = get_plugin_instance(plugin_config)
             image = plugin.generate_image(plugin_settings, device_config)
@@ -253,6 +253,6 @@ def update_now():
 
     except Exception as e:
         logger.exception(f"Error in update_now: {str(e)}")
-        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+        return jsonify({"error": f"出错了：{str(e)}"}), 500
 
-    return jsonify({"success": True, "message": "Display updated"}), 200
+    return jsonify({"success": True, "message": "显示已更新"}), 200

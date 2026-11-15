@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -61,15 +61,15 @@
         <!-- Page Title -->
         <header class="header">
             <h1>{{ config.name }}</h1>
-            <button class="settings-button dark-mode-toggle" title="Toggle Dark Mode" aria-label="Toggle Dark Mode"></button>
-            <a href="{{ url_for('apikeys.apikeys_page') }}" class="settings-button" title="API Keys">
+            <button class="settings-button dark-mode-toggle" title="切换深色模式" aria-label="切换深色模式"></button>
+            <a href="{{ url_for('apikeys.apikeys_page') }}" class="settings-button" title="API 密钥">
                 <span style="font-size: 20px;">🔑</span>
             </a>
             <a href="{{ url_for('playlist.playlists') }}" class="settings-button">
-                <img src="{{ url_for('static', filename='icons/playlist.png') }}" title="Playlists" alt="playlists icon" class="icon-image">
+                <img src="{{ url_for('static', filename='icons/playlist.png') }}" title="播放列表" alt="playlists icon" class="icon-image">
             </a>
             <a href="{{ url_for('settings.settings_page') }}" class="settings-button">
-                <img src="{{ url_for('static', filename='icons/settings.png') }}" title="Settings" alt="settings icon" class="icon-image">
+                <img src="{{ url_for('static', filename='icons/settings.png') }}" title="设置" alt="settings icon" class="icon-image">
             </a>
         </header>
 
@@ -82,14 +82,14 @@
         <div class="separator"></div>
 
         <div class="plugins-header">
-            <h2 class="plugins-title">Plugins</h2>
+            <h2 class="plugins-title">插件</h2>
             <div class="plugins-controls">
-                <button class="sort-toggle" id="sortToggle" title="Reorder plugins">Sort</button>
-                <button class="view-toggle" id="viewToggle" title="Switch view">List</button>
+                <button class="sort-toggle" id="sortToggle" title="调整插件顺序">排序</button>
+                <button class="view-toggle" id="viewToggle" title="切换视图">列表</button>
             </div>
         </div>
 
-        <div class="sort-hint" id="sortHint">Drag plugins to reorder. Click "Save" when done.</div>
+        <div class="sort-hint" id="sortHint">拖动插件可调整顺序，完成后点「保存」。</div>
 
         <div class="plugins-container" id="pluginsContainer">
             {% for plugin in plugins %}

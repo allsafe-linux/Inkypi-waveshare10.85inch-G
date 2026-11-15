@@ -92,7 +92,7 @@ def save_apikeys():
             
             # Validate key format
             if not re.match(r'^[A-Za-z_][A-Za-z0-9_]*$', key):
-                return jsonify({"error": f"Invalid key format: {key}"}), 400
+                return jsonify({"error": f"密钥格式无效：{key}"}), 400
             
             if keep_existing:
                 # Use existing value from .env file
@@ -110,10 +110,10 @@ def save_apikeys():
             
             return jsonify({
                 "success": True,
-                "message": f"Saved {len(valid_entries)} API key(s). Some plugins may require restart to pick up changes."
+                "message": f"已保存 {len(valid_entries)} 个 API 密钥。部分插件需要重启后才能生效。"
             })
         else:
-            return jsonify({"error": "Failed to write .env file"}), 500
+            return jsonify({"error": "写入 .env 文件失败"}), 500
             
     except Exception as e:
         logger.error(f"Error saving API keys: {e}")

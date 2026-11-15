@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Playlists</title>
+    <title>播放列表</title>
     <script>
         (function() {
             const theme = localStorage.getItem('inkypi-theme') ||
@@ -384,15 +384,15 @@
 <body>
     <div class="frame">
         <!-- Back Button -->
-        <button onclick="history.back()" class="back-button">← Back</button>
+        <button onclick="history.back()" class="back-button">← 返回</button>
         <!-- Settings Header -->
         <div class="app-header">
             <div class="header-content">
                 <div class="title-container">
                     <img src="{{ url_for('static', filename='icons/playlist.png') }}" alt="playlist icon" class="app-icon">
-                    <h1 class="app-title">Playlists</h1>
+                    <h1 class="app-title">播放列表</h1>
                 </div>
-                <button class="header-button" onclick="openCreateModal()">New Playlist</button>
+                <button class="header-button" onclick="openCreateModal()">新建播放列表</button>
             </div>
         </div>
         <div class="separator"></div>
@@ -420,7 +420,7 @@
                                         src="{{ url_for('plugin.plugin_instance_image', playlist_name=playlist.name, plugin_id=plugin_instance.plugin_id, instance_name=plugin_instance.name) }}"
                                         alt="Preview"
                                         class="plugin-thumbnail"
-                                        title="Click to view full size"
+                                        title="点击查看大图"
                                         onerror="this.parentElement.style.display='none';"
                                     >
                                 </div>
@@ -428,7 +428,7 @@
 
                                 <!-- Check if the current plugin is the one being displayed -->
                                 {% if playlist.name == refresh_info.playlist and plugin_instance.name == refresh_info.plugin_instance %}
-                                <span class="displayed-now">Displayed Now</span>
+                                <span class="displayed-now">已显示</span>
                                 {% endif %}
                                 <div id="loadingIndicator" class="loading-indicator small left-align"></div>
 
@@ -445,17 +445,17 @@
                                     <img src="{{ url_for('static', filename='icons/edit.png') }}" alt="edit plugin" class="action-icon">
                                 </a>
                                 <button class="edit-button refresh-settings-btn"
-                                        title="Edit Refresh Settings"
+                                        title="编辑刷新设置"
                                         data-playlist="{{ playlist.name }}"
                                         data-plugin-id="{{ plugin_instance.plugin_id }}"
                                         data-instance="{{ plugin_instance.name }}"
                                         data-refresh='{{ plugin_instance.refresh | tojson }}'>
                                     <img src="{{ url_for('static', filename='icons/clock.svg') }}" alt="refresh settings" class="action-icon">
                                 </button>
-                                <button class="edit-button" title="Display Now" onclick="displayPluginInstance('{{ playlist.name }}', '{{ plugin_instance.plugin_id }}','{{ plugin_instance.name }}')">
+                                <button class="edit-button" title="立即显示" onclick="displayPluginInstance('{{ playlist.name }}', '{{ plugin_instance.plugin_id }}','{{ plugin_instance.name }}')">
                                     <img src="{{ url_for('static', filename='icons/display.png') }}" alt="display now" class="action-icon">
                                 </button>
-                                <button class="delete-button" title="Delete Plugin Instance" onclick="deletePluginInstance('{{ playlist.name }}', '{{ plugin_instance.plugin_id }}','{{ plugin_instance.name }}')">
+                                <button class="delete-button" title="删除插件实例" onclick="deletePluginInstance('{{ playlist.name }}', '{{ plugin_instance.plugin_id }}','{{ plugin_instance.name }}')">
                                     <img src="{{ url_for('static', filename='icons/remove.png') }}" alt="delete plugin" class="action-icon">
                                 </button>
                             </div>
@@ -471,25 +471,25 @@
     <div id="playlistModal" class="modal">
         <div class="modal-content">
             <span class="close-button" onclick="closeModal()">×</span>
-            <h2 id="modalTitle">New Playlist</h2>
+            <h2 id="modalTitle">新建播放列表</h2>
             <div class="separator"></div>
             <form id="scheduleForm" class="settings-form">
                 <input type="hidden" id="editingPlaylistName" value="">  <!-- Track existing playlist -->
 
                 <div class="form-group">
-                    <label for="playlist_name" class="form-label">Playlist Name:</label>
-                    <input type="text" id="playlist_name" name="playlist_name" placeholder="Type something..." required class="form-input">
+                    <label for="playlist_name" class="form-label">播放列表名称：</label>
+                    <input type="text" id="playlist_name" name="playlist_name" placeholder="请输入…" required class="form-input">
                 </div>
                 <div class="form-group">
-                    <label for="start_time" class="form-label">Display from </label>
+                    <label for="start_time" class="form-label">显示范围 </label>
                     <select id="start_time" name="start_time" class="form-input"></select>
                     <span> - </span>
                     <select id="end_time" name="end_time" class="form-input"></select>
                 </div>
             </form>
             <div class="buttons-container">
-                <button type="button" class="action-button" id="saveButton">Save</button>
-                <button type="button" class="action-button warn hidden" id="deleteButton" onclick="deletePlaylist()">Delete</button>
+                <button type="button" class="action-button" id="saveButton">保存</button>
+                <button type="button" class="action-button warn hidden" id="deleteButton" onclick="deletePlaylist()">删除</button>
             </div>
         </div>
     </div>
@@ -498,14 +498,14 @@
     <div id="refreshSettingsModal" class="modal">
         <div class="modal-content">
             <span class="close-button" onclick="closeRefreshModal()">×</span>
-            <h2>Refresh Settings</h2>
+            <h2>刷新设置</h2>
             <div class="separator"></div>
             <form id="refreshSettingsForm" class="settings-form">
                 {% set prefix = "modal" %}
                 {% include 'refresh_settings_form.html' %}
             </form>
             <div class="buttons-container">
-                <button type="button" class="action-button" onclick="saveRefreshSettings()">Save</button>
+                <button type="button" class="action-button" onclick="saveRefreshSettings()">保存</button>
             </div>
         </div>
     </div>

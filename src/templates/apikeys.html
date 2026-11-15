@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API Keys</title>
+    <title>API 密钥</title>
     <script>
         (function() {
             const theme = localStorage.getItem('inkypi-theme') || 
@@ -193,14 +193,14 @@
 <body>
     <div class="frame">
         <!-- Back Button -->
-        <button onclick="history.back()" class="back-button">← Back</button>
+        <button onclick="history.back()" class="back-button">← 返回</button>
         
         <!-- Header -->
         <div class="app-header">
             <div class="header-content">
                 <div class="title-container">
                     <span style="font-size: 28px; margin-right: 10px;">🔑</span>
-                    <h1 class="app-title">API Keys</h1>
+                    <h1 class="app-title">API 密钥</h1>
                 </div>
             </div>
         </div>
@@ -213,15 +213,15 @@
                     {% for entry in entries %}
                     <div class="apikey-row" data-existing="true">
                         <input type="text" class="apikey-key" value="{{ entry.key }}" placeholder="KEY_NAME" readonly>
-                        <input type="text" class="apikey-value masked" value="{{ entry.masked }}" placeholder="(unchanged)" readonly>
-                        <button type="button" class="btn-delete" onclick="deleteRow(this)" title="Delete">×</button>
+                        <input type="text" class="apikey-value masked" value="{{ entry.masked }}" placeholder="（未修改）" readonly>
+                        <button type="button" class="btn-delete" onclick="deleteRow(this)" title="删除">×</button>
                     </div>
                     {% endfor %}
                 {% else %}
                     <div class="empty-state" id="empty-state">
                         <div class="empty-state-icon">🔐</div>
-                        <p>No API keys configured yet.</p>
-                        <p>Add keys below to enable plugin features.</p>
+                        <p>还没有配置任何 API 密钥。</p>
+                        <p>在下面添加密钥以启用插件功能。</p>
                     </div>
                 {% endif %}
             </div>
@@ -229,7 +229,7 @@
             <!-- Add Buttons -->
             <div class="add-buttons-grid">
                 <button type="button" class="btn-add" onclick="addRow()">
-                    <span>+</span> Add API Key
+                    <span>+</span> 添加 API 密钥
                 </button>
                 <button type="button" class="btn-preset" data-key="OPEN_WEATHER_MAP_SECRET" onclick="addPreset(this)">OPEN_WEATHER_MAP_SECRET</button>
                 <button type="button" class="btn-preset" data-key="OPEN_AI_SECRET" onclick="addPreset(this)">OPEN_AI_SECRET</button>
@@ -242,7 +242,7 @@
             <div class="info-banner">
                 <span class="info-banner-icon">ℹ️</span>
                 <span class="info-banner-text">
-                    API keys are stored in the <code>.env</code> file on the device.
+                    API 密钥保存在 <code>.env</code> file on the device.
                     For security, existing values are never displayed. To change a key, delete it and add a new one.
                     Some plugins may require a restart after changing keys.
                 </span>
@@ -251,7 +251,7 @@
         
         <!-- Save Button -->
         <div class="buttons-container">
-            <button type="button" onclick="saveKeys()" class="action-button">Save</button>
+            <button type="button" onclick="saveKeys()" class="action-button">保存</button>
         </div>
     </div>
     
@@ -272,8 +272,8 @@
             row.dataset.existing = 'false';
             row.innerHTML = `
                 <input type="text" class="apikey-key" value="${key}" placeholder="KEY_NAME">
-                <input type="text" class="apikey-value" value="${value}" placeholder="Enter value">
-                <button type="button" class="btn-delete" onclick="deleteRow(this)" title="Delete">×</button>
+                <input type="text" class="apikey-value" value="${value}" placeholder="请输入值">
+                <button type="button" class="btn-delete" onclick="deleteRow(this)" title="删除">×</button>
             `;
             list.appendChild(row);
             

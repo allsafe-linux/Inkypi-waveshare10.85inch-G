@@ -1,5 +1,5 @@
 {
-    "display_name": "Image URL",
+    "display_name": "图片链接",
     "id": "image_url",
     "class": "ImageURL"
 }
