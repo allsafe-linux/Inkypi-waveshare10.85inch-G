@@ -1,14 +1,37 @@
-  <style>
+<style>
+    /* 中文 @font-face：官方全局只有 4 个西文字体，这里在插件页里自己声明，
+       路径走 url_for('static',...)，跟着安装位置走，不会写死绝对路径。 */
+    {% for family, file in [
+        ("ChineseHei", "fonts/simhei.ttf"),
+        ("ChineseKai", "fonts/simkai.ttf"),
+        ("ChineseFang", "fonts/simfang.ttf"),
+        ("ChineseDaHei", "fonts/方正大黑_GBK.ttf"),
+        ("ChineseSong", "fonts/方正小标宋_GBK.ttf"),
+        ("ChineseWei", "fonts/方正魏碑_GBK.ttf"),
+        ("ChineseKaTong", "fonts/方正卡通简体.ttf"),
+        ("ChineseKaiGB", "fonts/楷体_GB2312.ttf"),
+        ("ChineseFangGB", "fonts/仿宋_GB2312.ttf")
+    ] %}
+    @font-face {
+        font-family: "{{ family }}";
+        src: url("{{ url_for('static', filename=file) }}") format("truetype");
+    }
+    {% endfor %}
+
     .lists-container {
       display: flex;
       flex-direction: column;
       gap: 1rem;
       margin-bottom: 1rem;
     }
-    
+
     .list {
       display: flex;
       flex-direction: column;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 0.75rem;
+      background: #fafafa;
     }
 
     .list .title-container{
@@ -17,7 +40,7 @@
 
     .list textarea {
       resize: vertical;
-      min-height: 120px;
+      min-height: 90px;
       padding: 0.5rem;
       border: 1px solid #ccc;
       border-radius: 4px;
@@ -29,48 +52,175 @@
         box-shadow: 0 0 3px rgba(26, 188, 156, 0.5);
     }
 
+    /* 每栏的字体/配色：用 grid 平均分，别用 flex-basis:0（会被挤成一条） */
+    .style-row {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr;
+      gap: 0.5rem;
+      margin: 0.5rem 0;
+      width: 100%;
+    }
+
+    .style-row select {
+      width: 100%;
+      min-width: 0;
+    }
+
+    /* 便签预览 */
+    .preview {
+      margin-top: 0.5rem;
+      border: 1.5px solid;
+      border-radius: 6px;
+      padding: 0.5rem 0.7rem;
+      min-height: 52px;
+    }
+
+    .preview .pv-title {
+      font-weight: 700;
+      font-size: 1.05rem;
+      line-height: 1.2;
+      border-bottom: 1px solid;
+      padding-bottom: 0.25rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .preview .pv-item {
+      font-size: 0.9rem;
+      line-height: 1.35;
+      white-space: pre-line;
+    }
+
+    .contrast-warning {
+      color: #b3541e;
+      font-size: 0.8rem;
+      margin-top: 0.3rem;
+      display: none;
+    }
+
+    .contrast-warning.show { display: block; }
+
+    .draft-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      margin: 0.5rem 0 1rem;
+      flex-wrap: wrap;
+    }
+
+    .draft-note {
+      font-size: 0.8rem;
+      color: #888;
+    }
   </style>
 
 <div class="form-group">
     <div class="form-group nowrap">
-        <label for="title" class="form-label">Title</label>
-        <input type="text" id="title" name="title" placeholder="Type something..." class="form-input">
+        <label for="title" class="form-label">标题</label>
+        <input type="text" id="title" name="title" placeholder="请输入…" class="form-input">
     </div>
     <div class="form-group nowrap">
-        <label for="listStyle" class="form-label">List Style:</label>
+        <label for="listStyle" class="form-label">列表样式：</label>
         <select id="listStyle" name="listStyle" class="form-input">
-            <option value="disc">Disc (●)</option>
-            <option value="square">Square (◼)</option>
-            <option value="'\25C6  '">Diamond (◆)</option>
-            <option value="decimal">Decimal</option>
-            <option value="lower-roman">Roman Numeral</option>
-            <option value="lower-alpha">Alphabetical</option>
+            <option value="disc">圆点 (●)</option>
+            <option value="square">方块 (◼)</option>
+            <option value="'\25C6  '">菱形 (◆)</option>
+            <option value="decimal">阿拉伯数字</option>
+            <option value="lower-roman">罗马数字</option>
+            <option value="lower-alpha">字母顺序</option>
         </select>
     </div>
     <div class="form-group nowrap">
-        <label for="fontSize" class="form-label">Font Size:</label>
+        <label for="fontSize" class="form-label">字号：</label>
         <select id="fontSize" name="fontSize" class="form-input">
-            <option value="x-small">Extra Small</option>
-            <option value="small">Small</option>
-            <option value="normal">Normal</option>
-            <option value="large">Large</option>
-            <option value="x-large">Extra Larger</option>
+            <option value="x-small">特小</option>
+            <option value="small">小</option>
+            <option value="normal">普通</option>
+            <option value="large">大</option>
+            <option value="x-large">特大</option>
+        </select>
+    </div>
+    <div class="form-group nowrap">
+        <label for="columns" class="form-label">栏数：</label>
+        <select id="columns" name="columns" class="form-input">
+            <option value="auto">自动（按屏幕宽度）</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="8">8</option>
         </select>
     </div>
 </div>
+
+<div class="draft-actions">
+    <button type="button" class="header-button" id="clearDraftBtn">清除记忆</button>
+    <span class="draft-note" id="draftNote">填的内容会自动记在这台电脑的浏览器里（刷新不丢）。要让播放列表也用新内容：到「播放列表」页面点进这个实例 → 点「保存」。</span>
+</div>
+
 <div class="lists-container" id="listsContainer">
 <!-- Lists will go here -->
 </div>
 
-<button class="header-button" id="addBtn">+ Add List</button>
+<button class="header-button" id="addBtn">+ 添加一栏</button>
 
 <script>
     const container = document.getElementById("listsContainer");
     const addBtn = document.getElementById("addBtn");
     let listCount = 0;
-    const maxLists = 3;
+    const maxLists = 8;
 
-    function createList(title = "", text = "") {
+    // 墨水屏只有 4 种颜色，字体/配色都从这几个里挑，量化时不会出噪点
+    const COLOR_OPTIONS = [
+        ['black',  '黑 #000000'],
+        ['white',  '白 #FFFFFF'],
+        ['yellow', '黄 #FFFF00'],
+        ['red',    '红 #FF0000']
+    ];
+    const FONT_OPTIONS = [
+        ['auto',          '默认 (Jost)'],
+        ['ChineseHei',    '黑体'],
+        ['ChineseKai',    '楷体'],
+        ['ChineseFang',   '仿宋'],
+        ['ChineseDaHei',  '大黑 (方正)'],
+        ['ChineseSong',   '小标宋 (方正)'],
+        ['ChineseWei',    '魏碑 (方正)'],
+        ['ChineseKaTong', '卡通 (方正)'],
+        ['ChineseKaiGB',  '楷体 GB'],
+        ['ChineseFangGB', '仿宋 GB'],
+        ['Jost',          'Jost'],
+        ['Napoli',        'Napoli'],
+        ['Dogica',        'Dogica'],
+        ['DS-Digital',    'DS-Digital']
+    ];
+    // 底色/字色对比度太低会糊成一片
+    const LOW_CONTRAST = [
+        ['black','black'], ['white','white'], ['yellow','yellow'], ['red','red'],
+        ['yellow','white'], ['white','yellow']
+    ];
+
+    const DRAFT_KEY = 'inkypi.todo_list.draft.v2';
+
+    function hexOf(name) {
+        return { black: "#000000", white: "#FFFFFF", yellow: "#FFFF00", red: "#FF0000" }[name] || "#FFFFFF";
+    }
+
+    function buildSelect(name, options, selected, extraClass) {
+        const sel = document.createElement("select");
+        sel.className = "form-input" + (extraClass ? " " + extraClass : "");
+        sel.name = name;
+        options.forEach(function (opt) {
+            const o = document.createElement("option");
+            o.value = opt[0];
+            o.textContent = opt[1];
+            if (opt[0] === selected) o.selected = true;
+            sel.appendChild(o);
+        });
+        return sel;
+    }
+
+    function createList(title = "", text = "", font = "auto", textColor = "black", bgColor = "white") {
         if (listCount >= maxLists) return;
 
         listCount++;
@@ -79,37 +229,209 @@
 
         list.innerHTML = `
         <div class="title-container form-group">
-            <input id="list-title[]" name="list-title[]" type="text" placeholder="List title" value="${title}">
-            <button class="delete-button" title="Delete List">
+            <input class="lt" name="list-title[]" type="text" placeholder="List title (这一栏的标题)">
+            <button class="delete-button" title="删除这一栏">
                 <img src="{{ url_for('static', filename='icons/remove.png') }}" alt="delete plugin" class="action-icon">
             </button>
         </div>
-        <textarea id="list[]" name="list[]" placeholder="Enter your tasks...">${text}</textarea>
+        <div class="style-row"></div>
+        <textarea class="lb" name="list[]" placeholder="在这里输入待办…"></textarea>
+        <div class="preview">
+            <div class="pv-title"></div>
+            <div class="pv-item"></div>
+        </div>
+        <div class="contrast-warning">⚠ 底色和字色太接近，墨水屏上会看不清，建议换一个。</div>
         `;
+
+        const styleRow = list.querySelector(".style-row");
+        styleRow.appendChild(buildSelect("list-font[]", FONT_OPTIONS, font, "lf"));
+        styleRow.appendChild(buildSelect("list-text-color[]", COLOR_OPTIONS, textColor, "ltc"));
+        styleRow.appendChild(buildSelect("list-bg-color[]", COLOR_OPTIONS, bgColor, "lbc"));
+
+        list.querySelector(".lt").value = title;
+        list.querySelector(".lb").value = text;
 
         list.querySelector(".delete-button").onclick = () => {
             list.remove();
             listCount--;
+            saveDraft();
         };
 
+        list.addEventListener("input", onListChanged);
+        list.addEventListener("change", onListChanged);
+
         container.appendChild(list);
+        updatePreview(list);
+    }
+
+    /* 便签预览：让填的时候就能看到这一栏长什么样 */
+    function updatePreview(list) {
+        const fontKey = list.querySelector(".lf").value;
+        const textColor = list.querySelector(".ltc").value;
+        const bgColor = list.querySelector(".lbc").value;
+        const preview = list.querySelector(".preview");
+
+        preview.style.backgroundColor = hexOf(bgColor);
+        preview.style.color = hexOf(textColor);
+        preview.style.fontFamily = fontKey === "auto" ? "" : "'" + fontKey + "', sans-serif";
+
+        const title = list.querySelector(".lt").value || "（未命名）";
+        const lines = list.querySelector(".lb").value.split("\n").filter(function (l) { return l.trim(); });
+        preview.querySelector(".pv-title").textContent = title;
+        preview.querySelector(".pv-item").textContent = lines.length ? lines.slice(0, 6).join("\n") : "（空）";
+
+        const bad = LOW_CONTRAST.some(function (p) { return p[0] === bgColor && p[1] === textColor; });
+        list.querySelector(".contrast-warning").classList.toggle("show", bad);
+    }
+
+    /* ---------------- 自动记忆（localStorage） ---------------- */
+    function collectDraft() {
+        const lists = [];
+        container.querySelectorAll(".list").forEach(function (el) {
+            lists.push({
+                title: el.querySelector(".lt").value,
+                text: el.querySelector(".lb").value,
+                font: el.querySelector(".lf").value,
+                textColor: el.querySelector(".ltc").value,
+                bgColor: el.querySelector(".lbc").value
+            });
+        });
+        return {
+            title: document.getElementById("title").value,
+            listStyle: document.getElementById("listStyle").value,
+            fontSize: document.getElementById("fontSize").value,
+            columns: document.getElementById("columns").value,
+            lists: lists
+        };
+    }
+
+    function applyDraft(draft) {
+        if (!draft || !draft.lists || !draft.lists.length) return false;
+        container.innerHTML = "";
+        listCount = 0;
+        draft.lists.forEach(function (l) {
+            createList(l.title || "", l.text || "", l.font || "auto", l.textColor || "black", l.bgColor || "white");
+        });
+        document.getElementById("title").value = draft.title || "";
+        document.getElementById("listStyle").value = draft.listStyle || "disc";
+        document.getElementById("fontSize").value = draft.fontSize || "normal";
+        document.getElementById("columns").value = draft.columns || "auto";
+        return true;
+    }
+
+    let saveTimer = null;
+    function saveDraft() {
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(function () {
+            try {
+                localStorage.setItem(DRAFT_KEY, JSON.stringify(collectDraft()));
+            } catch (e) { /* 隐私模式下写不了，忽略 */ }
+        }, 250);
+    }
+
+    function loadDraft() {
+        try {
+            const raw = localStorage.getItem(DRAFT_KEY);
+            return raw ? JSON.parse(raw) : null;
+        } catch (e) { return null; }
+    }
+
+    function onListChanged(e) {
+        const list = e.target.closest(".list");
+        if (list) updatePreview(list);
+        saveDraft();
+    }
+
+    document.getElementById("title").addEventListener("input", saveDraft);
+    ["listStyle", "fontSize", "columns"].forEach(function (id) {
+        document.getElementById(id).addEventListener("change", saveDraft);
+    });
+
+    document.getElementById("clearDraftBtn").onclick = function () {
+        try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+        const note = document.getElementById("draftNote");
+        note.textContent = "已清除记忆，下次打开会是空白（当前屏幕上的内容不受影响）。";
+    };
+
+    /* ---------------- 服务器实例 ↔ 浏览器草稿 ---------------- */
+    function createFromServer() {
+        const titles = pluginSettings['list-title[]'] || [];
+        const texts = pluginSettings['list[]'] || [];
+        const fonts = pluginSettings['list-font[]'] || [];
+        const textColors = pluginSettings['list-text-color[]'] || [];
+        const bgColors = pluginSettings['list-bg-color[]'] || [];
+
+        for (let i = 0; i < Math.min(texts.length, maxLists); i++) {
+            createList(titles[i] || '', texts[i] || '',
+                       fonts[i] || 'auto', textColors[i] || 'black', bgColors[i] || 'white');
+        }
+    }
+
+    function serverTexts() {
+        return (pluginSettings && pluginSettings['list[]']) || [];
+    }
+
+    function serverHasContent() {
+        return serverTexts().some(function (t) { return String(t || '').trim(); });
+    }
+
+    function draftHasContent(draft) {
+        return !!(draft && draft.lists && draft.lists.some(function (l) {
+            return String(l.text || '').trim();
+        }));
+    }
+
+    /* 草稿内容是否和服务器实例一致 */
+    function draftMatchesServer(draft) {
+        const server = serverTexts().map(function (t) { return String(t || '').replace(/\r/g, '').trim(); });
+        const mine = (draft.lists || []).map(function (l) { return String(l.text || '').replace(/\r/g, '').trim(); });
+        if (server.length !== mine.length) return false;
+        return server.every(function (t, i) { return t === mine[i]; });
+    }
+
+    function showConflictNote() {
+        const note = document.getElementById('draftNote');
+        note.innerHTML = '⚠ 浏览器记忆和播放列表实例里的内容不一致。' +
+            '当前显示的是<b>浏览器记忆</b>（你最后编辑的版本）。' +
+            ' <button type="button" class="header-button" id="useServerBtn">改用播放列表里的版本</button>';
+        note.classList.add('conflict');
+        document.getElementById('useServerBtn').onclick = function () {
+            container.innerHTML = '';
+            listCount = 0;
+            createFromServer();
+            saveDraft();
+            note.textContent = '已改用播放列表实例里的内容，并存成浏览器记忆。';
+            note.classList.remove('conflict');
+        };
     }
 
     document.addEventListener('DOMContentLoaded', () => {
         let fontSize = "normal";
         let listStyle = "disc";
+        let columns = "auto";
 
-        if (loadPluginSettings) {
+        /* ★ 加载顺序很重要：
+             浏览器草稿 = 用户最后编辑的版本（权威）
+             服务器实例 = 「加进播放列表那一刻」的快照
+           之前加载时无条件 saveDraft()，把服务器旧内容盖掉了草稿，
+           用户一刷新就发现「填的内容没了」——现在草稿优先，服务器兜底。 */
+        const draft = loadDraft();
+        const hasDraft = draftHasContent(draft);
+        const hasServer = serverHasContent();
+
+        if (hasDraft) {
+            // applyDraft 已经把 title / listStyle / fontSize / columns 写进 DOM 了
+            applyDraft(draft);
+            if (hasServer && !draftMatchesServer(draft)) showConflictNote();
+        } else if (hasServer) {
+            createFromServer();
             document.getElementById('title').value = pluginSettings.title || '';
-            const titles = pluginSettings['list-title[]'] || [];
-            const texts = pluginSettings['list[]'] || [];
-
-            for (let i = 0; i < Math.min(titles.length, maxLists); i++) {
-                createList(titles[i], texts[i] || '');
-            }
-
-            fontSize = pluginSettings.fontSize;
-            listStyle = pluginSettings.listStyle;
+            fontSize = pluginSettings.fontSize || 'normal';
+            listStyle = pluginSettings.listStyle || 'disc';
+            columns = pluginSettings.columns || 'auto';
+            saveDraft();
+        } else {
+            createList();
         }
 
         if (listCount === 0) createList();
@@ -117,9 +439,13 @@
         // Handle Add button
         addBtn.onclick = () => {
             if (listCount < maxLists) createList();
+            saveDraft();
         };
 
-        document.getElementById('fontSize').value = fontSize;
-        document.getElementById('listStyle').value = listStyle;
+        if (!hasDraft) {
+            document.getElementById('fontSize').value = fontSize;
+            document.getElementById('listStyle').value = listStyle;
+            document.getElementById('columns').value = columns;
+        }
     });
 </script>

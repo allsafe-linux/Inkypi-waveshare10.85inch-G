@@ -1,0 +1,247 @@
+/*
+ * Meeting 插件 —— 微雪 10.85" 四色 e-Paper (G) 版式
+ *
+ * 墨水屏只有 4 色（黑 / 白 / 黄 / 红），所以：
+ *   - 不使用 box-shadow（浅灰阴影会被抖成一圈噪点）
+ *   - 分隔线用 2px solid currentColor（1px 在量化时容易糊掉）
+ *   - 色块一律直角（圆角边缘的抗锯齿会在 4 色量化下糊成毛边）
+ *   - 所有前景色只取面板四色之一
+ */
+
+.meeting-board {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* ============================ 门牌视图 ============================ */
+
+.room-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex: 0 0 auto;
+  border-bottom: 2px solid currentColor;
+  padding-bottom: 0.35em;
+}
+
+/* 头尾两行的子项不参与压缩，否则长文本会把它们挤扁 */
+.room-head > *,
+.room-next > * {
+  flex-shrink: 0;
+}
+
+.room-name {
+  font-size: calc(min(7dvh, 7dvw) * 1.15);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.room-clock {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6em;
+}
+
+.room-time {
+  font-size: calc(min(6dvh, 6dvw) * 1.15);
+  font-weight: 600;
+}
+
+.room-date {
+  font-size: calc(min(4.2dvh, 4.2dvw));
+}
+
+.room-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.25em;
+  padding: 0.3em 0;
+}
+
+.status-badge {
+  display: inline-block;
+  align-self: flex-start;
+  padding: 0.12em 0.7em;
+  font-size: calc(min(5dvh, 5dvw));
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1.25;
+}
+
+.room-title {
+  font-size: calc(min(15dvh, 15dvw));
+  font-weight: 700;
+  line-height: 1.15;
+  overflow: hidden;
+  /* ★ 这里原本用 display:-webkit-box + -webkit-line-clamp:2 做两行截断，
+   *   在 flex column 容器里 -webkit-box 会被 blockify，line-clamp 算出的
+   *   行高是错的，导致 .room-body 高度偏小、内容溢出，
+   *   最后被 .meeting-board 的 overflow:hidden 整块裁掉（整屏只剩边框）。
+   *   改成普通块 + max-height 限制两行，行为可预期。 */
+  max-height: 2.3em;
+}
+
+.room-title-idle {
+  color: inherit;
+}
+
+.room-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 1em;
+  flex-wrap: wrap;
+}
+
+.room-time-range {
+  font-size: calc(min(6.5dvh, 6.5dvw));
+  font-weight: 600;
+}
+
+.room-remaining {
+  font-size: calc(min(5dvh, 5dvw));
+}
+
+.room-location {
+  font-size: calc(min(5.2dvh, 5.2dvw));
+}
+
+.room-next {
+  flex: 0 0 auto;
+  border-top: 2px solid currentColor;
+  padding-top: 0.3em;
+  display: flex;
+  align-items: baseline;
+  gap: 0.9em;
+  overflow: hidden;
+}
+
+.next-label {
+  font-size: calc(min(4.2dvh, 4.2dvw));
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  flex: 0 0 auto;
+}
+
+.next-time {
+  font-size: calc(min(5.2dvh, 5.2dvw));
+  font-weight: 600;
+  flex: 0 0 auto;
+}
+
+.next-title {
+  font-size: calc(min(5.2dvh, 5.2dvw));
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.next-location {
+  font-size: calc(min(4.2dvh, 4.2dvw));
+  flex: 0 0 auto;
+}
+
+.next-empty {
+  opacity: 1;
+}
+
+/* ============================ 议程视图 ============================ */
+
+.agenda-head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: baseline;
+  gap: 0.8em;
+  border-bottom: 2px solid currentColor;
+  padding-bottom: 0.3em;
+}
+
+.agenda-heading {
+  font-size: calc(min(6dvh, 6dvw));
+  font-weight: 700;
+}
+
+.agenda-range {
+  font-size: calc(min(4.4dvh, 4.4dvw));
+}
+
+.agenda-list {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.agenda-row {
+  /* ★ 这里必须用 % 或 vw，不能用 cqw：
+   *   cqw 需要「容器查询上下文」(container-type: size)，而本插件没有设，
+   *   声明会被整条丢弃 -> grid 退回默认单列 -> 行高暴涨 ->
+   *   内容被 .agenda-list 的 overflow:hidden 裁掉，只剩分隔线。 */
+  display: grid;
+  grid-template-columns: 22% 1fr 20%;
+  align-items: baseline;
+  gap: 0.6em;
+  padding: 0.35em 0;
+  border-top: 2px solid currentColor;
+  overflow: hidden;
+}
+
+.agenda-row:first-child {
+  border-top: none;
+}
+
+.agenda-time {
+  font-size: calc(min(4.8dvh, 4.8dvw));
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.agenda-title {
+  font-size: calc(min(5.6dvh, 5.6dvw));
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agenda-location {
+  font-size: calc(min(4.2dvh, 4.2dvw));
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agenda-live {
+  display: inline-block;
+  margin-left: 0.6em;
+  padding: 0.05em 0.5em;
+  font-size: calc(min(3.4dvh, 3.4dvw));
+  font-weight: 700;
+  border: 2px solid currentColor;
+  letter-spacing: 0.08em;
+}
+
+.agenda-more {
+  flex: 0 0 auto;
+  padding-top: 0.25em;
+  font-size: calc(min(4dvh, 4dvw));
+  text-align: center;
+  border-top: 2px solid currentColor;
+}
+
+.agenda-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(min(6dvh, 6dvw));
+}

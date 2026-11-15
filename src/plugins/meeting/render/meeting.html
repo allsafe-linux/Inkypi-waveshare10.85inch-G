@@ -1,0 +1,93 @@
+{% extends "plugin.html" %}
+
+{% block content %}
+<style>
+    {% for f in extra_fonts %}
+    @font-face { font-family: "{{ f.family }}"; src: url("{{ f.url }}") format("truetype"); }
+    {% endfor %}
+</style>
+
+<div class="meeting-board"
+     style="background-color: {{ bg_color_hex }};
+            color: {{ text_color_hex }};
+            {% if font_family %}font-family: '{{ font_family }}', sans-serif;{% endif %}">
+
+{% if view == 'room' %}
+    {# ================= 门牌视图 ================= #}
+    <div class="room-head">
+        <div class="room-name">{{ room_name if room_name else '会议室' }}</div>
+        <div class="room-clock">
+            <span class="room-time">{{ now_text }}</span>
+            <span class="room-date">{{ now_date_text }}</span>
+        </div>
+    </div>
+
+    <div class="room-body">
+        <div class="status-badge" style="background-color: {{ status_bg_hex }}; color: {{ status_text_hex }};">
+            {{ status_text }}
+        </div>
+
+        {% if current_event %}
+            <div class="room-title">{{ current_event.title }}</div>
+            <div class="room-meta">
+                <span class="room-time-range">{{ current_time_text }}</span>
+                {% if remaining_text %}<span class="room-remaining">{{ remaining_text }}</span>{% endif %}
+            </div>
+            {% if current_location %}
+                <div class="room-location">{{ current_location }}</div>
+            {% endif %}
+        {% else %}
+            <div class="room-title room-title-idle">{{ now_text }}</div>
+            <div class="room-meta"><span class="room-time-range">暂无进行中的会议</span></div>
+        {% endif %}
+    </div>
+
+    <div class="room-next">
+        {% if next_event %}
+            <span class="next-label">下一个</span>
+            <span class="next-time">{{ next_time_text }}</span>
+            <span class="next-title">{{ next_title }}</span>
+            {% if next_location %}<span class="next-location">{{ next_location }}</span>{% endif %}
+        {% else %}
+            <span class="next-label">下一个</span>
+            <span class="next-title next-empty">暂无后续会议</span>
+        {% endif %}
+    </div>
+
+{% else %}
+    {# ================= 议程视图 ================= #}
+    <div class="agenda-head">
+        <span class="agenda-heading">议程</span>
+        <span class="agenda-range">{{ agenda_range_text }}</span>
+    </div>
+
+    {% if agenda_rows %}
+    <div class="agenda-list">
+        {% for row in agenda_rows %}
+        <div class="agenda-row{% if row.is_running %} is-running{% endif %}">
+            <div class="agenda-time"{% if row.is_running %} style="color: {{ accent_hex }};"{% endif %}>{{ row.time_text }}</div>
+            <div class="agenda-title">
+                {{ row.title }}
+                {% if row.is_running %}<span class="agenda-live" style="background-color: {{ accent_hex }}; color: {{ accent_text_hex }};">进行中</span>{% endif %}
+            </div>
+            <div class="agenda-location">{{ row.location }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% if agenda_hidden %}
+    <div class="agenda-more">还有 {{ agenda_hidden }} 条…</div>
+    {% endif %}
+    {% else %}
+    <div class="agenda-empty">
+        {% if fetch_error %}
+            没有取到会议数据
+        {% else %}
+            这段时间没有会议
+        {% endif %}
+    </div>
+    {% endif %}
+{% endif %}
+
+</div>
+
+{% endblock %}

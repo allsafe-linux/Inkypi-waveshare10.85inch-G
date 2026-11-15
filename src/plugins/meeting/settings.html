@@ -1,0 +1,208 @@
+<div>
+  <label class="form-label">视图：</label>
+  <div class="button-group" id="viewSelector">
+    {% for code, label in view_options %}
+    <button type="button" data-value="{{ code }}" onclick="selectView(this)">{{ label }}</button>
+    {% endfor %}
+  </div>
+  <input type="hidden" name="viewMode" id="viewMode" value="room">
+</div>
+
+<div class="form-group">
+  <label class="form-label">日历订阅（ICS）：</label>
+  <div id="calendarList"></div>
+  <button type="button" id="addCalendarBtn" class="form-input collapsible" onclick="addCalendarInput('')">添加日历</button>
+</div>
+
+<div class="form-group">
+  <label for="roomName" class="form-label">房间名称：</label>
+  <input type="text" id="roomName" name="roomName" class="form-input" placeholder="e.g. 三号会议室">
+</div>
+
+<div class="form-group" data-visible-modes="agenda">
+  <div class="form-group nowrap">
+    <label for="daysAhead" class="form-label">提前天数：</label>
+    <input type="number" id="daysAhead" name="daysAhead" class="form-input" min="1" max="14" value="1">
+  </div>
+  <div class="form-group nowrap">
+    <label for="maxEvents" class="form-label">最多显示几条：</label>
+    <input type="number" id="maxEvents" name="maxEvents" class="form-input" min="1" max="30" value="6">
+  </div>
+</div>
+
+<div class="form-group">
+  <label for="showLocation" class="form-label">显示地点：</label>
+  <div class="toggle-container">
+    <input type="hidden" id="showLocationValue" name="showLocation" value="true">
+    <input type="checkbox" id="showLocation" class="toggle-checkbox" checked>
+    <label for="showLocation" class="toggle-label"></label>
+  </div>
+</div>
+
+<div class="form-group">
+  <label for="fontKey" class="form-label">字体：</label>
+  <select id="fontKey" name="fontKey" class="form-input">
+    {% for code, label in font_options %}
+    <option value="{{ code }}">{{ label }}</option>
+    {% endfor %}
+  </select>
+</div>
+
+<div class="form-group">
+  <label for="bgColor" class="form-label">背景：</label>
+  <select id="bgColor" name="bgColor" class="form-input">
+    {% for code, hex in color_options %}
+    <option value="{{ code }}">{{ code }}</option>
+    {% endfor %}
+  </select>
+</div>
+
+<div class="form-group">
+  <label for="textColor" class="form-label">文字颜色：</label>
+  <select id="textColor" name="textColor" class="form-input">
+    {% for code, hex in color_options %}
+    <option value="{{ code }}">{{ code }}</option>
+    {% endfor %}
+  </select>
+</div>
+
+<div class="form-group">
+  <button type="button" id="clearMemoryBtn" class="form-input collapsible">清除已保存的设置</button>
+</div>
+
+<script>
+    const STORAGE_KEY = 'inkypi.meeting.draft.v1';
+    let saveTimer = null;
+
+    function selectView(button) {
+      document.querySelectorAll('#viewSelector button').forEach(btn => btn.classList.remove('active'));
+      button.classList.add('active');
+      document.getElementById('viewMode').value = button.getAttribute('data-value');
+      updateViewDependentOptions(document.getElementById('viewMode').value);
+      scheduleSave();
+    }
+
+    function updateViewDependentOptions(viewMode) {
+      document.querySelectorAll('[data-visible-modes]').forEach(el => {
+        const allowed = el.getAttribute('data-visible-modes').split(',');
+        const show = allowed.includes(viewMode);
+        el.style.display = show ? '' : 'none';
+        el.querySelectorAll('input, select, textarea').forEach(input => {
+          input.disabled = !show;
+        });
+      });
+    }
+
+    function addCalendarInput(url = '') {
+      const list = document.getElementById('calendarList');
+      const wrapper = document.createElement('div');
+      wrapper.classList.add('calendar-entry');
+      wrapper.classList.add('form-group');
+
+      const urlInput = document.createElement('input');
+      urlInput.type = 'text';
+      urlInput.name = 'calendarURLs[]';
+      urlInput.placeholder = 'ICS / webcal URL';
+      urlInput.classList.add('form-input');
+      urlInput.value = url;
+
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.innerText = '✕';
+      removeBtn.classList.add('remove-btn');
+      removeBtn.onclick = () => { wrapper.remove(); scheduleSave(); };
+
+      wrapper.appendChild(urlInput);
+      wrapper.appendChild(removeBtn);
+      list.appendChild(wrapper);
+    }
+
+    function collectDraft() {
+      return {
+        viewMode: document.getElementById('viewMode').value,
+        roomName: document.getElementById('roomName').value,
+        daysAhead: document.getElementById('daysAhead').value,
+        maxEvents: document.getElementById('maxEvents').value,
+        showLocation: document.getElementById('showLocationValue').value,
+        fontKey: document.getElementById('fontKey').value,
+        bgColor: document.getElementById('bgColor').value,
+        textColor: document.getElementById('textColor').value,
+        calendarURLs: Array.from(document.querySelectorAll('input[name="calendarURLs[]"]')).map(i => i.value)
+      };
+    }
+
+    function scheduleSave() {
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(collectDraft())); } catch (e) { /* ignore */ }
+      }, 250);
+    }
+
+    function applyDraft(draft) {
+      if (!draft) return;
+      document.getElementById('viewMode').value = draft.viewMode || 'room';
+      document.querySelectorAll('#viewSelector button').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-value') === document.getElementById('viewMode').value);
+      });
+      if (draft.roomName !== undefined) document.getElementById('roomName').value = draft.roomName;
+      if (draft.daysAhead !== undefined) document.getElementById('daysAhead').value = draft.daysAhead;
+      if (draft.maxEvents !== undefined) document.getElementById('maxEvents').value = draft.maxEvents;
+      if (draft.showLocation !== undefined) {
+        document.getElementById('showLocationValue').value = draft.showLocation;
+        document.getElementById('showLocation').checked = draft.showLocation === 'true';
+      }
+      if (draft.fontKey) document.getElementById('fontKey').value = draft.fontKey;
+      if (draft.bgColor) document.getElementById('bgColor').value = draft.bgColor;
+      if (draft.textColor) document.getElementById('textColor').value = draft.textColor;
+      const list = document.getElementById('calendarList');
+      list.innerHTML = '';
+      (draft.calendarURLs || []).forEach(u => addCalendarInput(u));
+      updateViewDependentOptions(document.getElementById('viewMode').value);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // 服务器上的实例设置优先（已加入播放列表的情况）
+      if (typeof loadPluginSettings !== 'undefined' && loadPluginSettings && pluginSettings) {
+        const s = pluginSettings;
+        if (s.viewMode) document.getElementById('viewMode').value = s.viewMode;
+        if (s.roomName !== undefined) document.getElementById('roomName').value = s.roomName;
+        if (s.daysAhead !== undefined) document.getElementById('daysAhead').value = s.daysAhead;
+        if (s.maxEvents !== undefined) document.getElementById('maxEvents').value = s.maxEvents;
+        if (s.showLocation !== undefined) {
+          document.getElementById('showLocationValue').value = s.showLocation;
+          document.getElementById('showLocation').checked = s.showLocation === 'true';
+        }
+        if (s.fontKey) document.getElementById('fontKey').value = s.fontKey;
+        if (s.bgColor) document.getElementById('bgColor').value = s.bgColor;
+        if (s.textColor) document.getElementById('textColor').value = s.textColor;
+        (s['calendarURLs[]'] || []).forEach(u => addCalendarInput(u));
+      } else {
+        try { applyDraft(JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null')); } catch (e) { /* ignore */ }
+      }
+
+      // 没有任何来源时，至少给一个空的日历输入框
+      if (document.getElementById('calendarList').children.length === 0) {
+        addCalendarInput('');
+      }
+
+      document.querySelectorAll('#viewSelector button').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-value') === document.getElementById('viewMode').value);
+      });
+      updateViewDependentOptions(document.getElementById('viewMode').value);
+
+      document.getElementById('showLocation').addEventListener('change', function () {
+        document.getElementById('showLocationValue').value = this.checked ? 'true' : 'false';
+        scheduleSave();
+      });
+      document.getElementById('clearMemoryBtn').addEventListener('click', function () {
+        try { localStorage.removeItem(STORAGE_KEY); } catch (e) { /* ignore */ }
+        document.getElementById('calendarList').innerHTML = '';
+        addCalendarInput('');
+      });
+
+      document.querySelectorAll('#viewSelector button, #roomName, #daysAhead, #maxEvents, #fontKey, #bgColor, #textColor')
+        .forEach(el => el.addEventListener('change', scheduleSave));
+      document.getElementById('roomName').addEventListener('input', scheduleSave);
+      document.getElementById('calendarList').addEventListener('input', scheduleSave);
+    });
+</script>

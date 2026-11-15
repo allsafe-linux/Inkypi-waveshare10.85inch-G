@@ -1,0 +1,269 @@
+<div style="margin-bottom:14px;">
+    <div style="font-family: 'Helvetica Neue', Arial, sans-serif; font-size:1em; color:var(--text-primary); font-weight:500; background:var(--bg-secondary); padding:12px 14px; border-left:3px solid var(--border-color); border-radius:2px; line-height:1.4; max-width:100%;">
+        万年历（带农历 / 节日 / 节气），为 10.85&quot; 四色墨水屏重新设计版面。<br>
+        配色铁律：<b>黄色只出现在黑底上</b>（白底黄字看不清，对比度只有 1:1.07），
+        白底上的字一律黑色或红色。
+    </div>
+</div>
+
+<div class="form-group">
+    <span style="color: var(--text-primary);">日期留空则默认为今天。</span>
+</div>
+
+<div class="form-group">
+    <label for="customDate" class="form-label">日期（可选）</label>
+    <input type="date" id="customDate" name="customDate" class="form-input">
+</div>
+
+<div class="form-group">
+    <label for="language" class="form-label">语言：</label>
+    <select id="language" name="language" class="form-input">
+        {% for code, name in language_options %}
+            <option value="{{ code }}"{% if code == 'zh' %} selected{% endif %}>{{ name }}</option>
+        {% endfor %}
+    </select>
+</div>
+
+<div class="form-group">
+    <label for="layoutMode" class="form-label">版面模式：</label>
+    <select id="layoutMode" name="layoutMode" class="form-input">
+        {% for code, label in layout_modes %}
+            <option value="{{ code }}"{% if code == default_layout %} selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+    </select>
+    <div class="form-group">
+        <span style="color: var(--text-primary); font-size:0.9em;">
+            分栏 = 左边万年历 + 右边待办；全屏 = 整屏万年历，格子更宽。
+        </span>
+    </div>
+</div>
+
+<div class="form-group">
+    <label for="todoSource" class="form-label">关联 To-Do 清单（第几条）：</label>
+    <input type="number" id="todoSource" name="todoSource" class="form-input" min="0" step="1" value="1">
+    <div class="form-group">
+        <span style="color: var(--text-primary); font-size:0.9em;">
+            从播放列表里的 <b>待办清单</b> 插件读取第 N 条清单，显示在右侧栏。
+            填 0 = 不关联。<b>要把待办清单加进播放列表并保存，服务器才读得到。</b>
+        </span>
+    </div>
+</div>
+
+<div class="form-group">
+    <label for="todoTitle" class="form-label">右侧栏标题（手动填写时用）:</label>
+    <input type="text" id="todoTitle" name="todoTitle" class="form-input" placeholder="购物清单">
+</div>
+
+<div class="form-group">
+    <label for="todoText" class="form-label">手动填写待办（可选，优先用上面关联的清单）:</label>
+    <textarea id="todoText" name="todoText" class="form-input" rows="5"
+        placeholder="[ ] 买牛奶&#10;[x] 给妈妈打电话&#10;[ ] 预约牙医"></textarea>
+    <div class="form-group">
+        <span style="color: var(--text-primary); font-size:0.9em;">
+            每行一条，<b>[ ]</b> 未完成、<b>[x]</b> 已完成（会打勾并划掉）。
+        </span>
+    </div>
+</div>
+
+<div class="form-group">
+    <label for="backgroundImageURL" class="form-label">在线背景图片地址（URL）：</label>
+    <input type="text" id="backgroundImageURL" name="backgroundImageURL" class="form-input"
+        placeholder="https://example.com/photo.jpg">
+    <div class="form-group">
+        <span style="color: var(--text-primary); font-size:0.9em;">
+            留空 = 白底。四色屏只有黑白红黄，照片会被抖成点阵，所以默认只取很淡的一层。
+            拉取失败会自动退回白底，不影响日历。
+        </span>
+    </div>
+</div>
+
+<div class="form-group">
+    <label for="backgroundStrength" class="form-label">背景浓度:</label>
+    <select id="backgroundStrength" name="backgroundStrength" class="form-input">
+        {% for code, label in background_strengths %}
+            <option value="{{ code }}"{% if code == default_background_strength %} selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+    </select>
+</div>
+
+<div class="form-group">
+    <label class="form-label">配色（仅四色屏）：</label>
+    <div class="form-group nowrap">
+        <label for="primaryColor" class="form-label">正文色:</label>
+        <select id="primaryColor" name="primaryColor" class="form-input">
+            {% for code, label in color_options %}
+            <option value="{{ code }}"{% if code == default_primary %} selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group nowrap">
+        <label for="highlightColor" class="form-label">强调色:</label>
+        <select id="highlightColor" name="highlightColor" class="form-input">
+            {% for code, label in color_options %}
+            <option value="{{ code }}"{% if code == default_highlight %} selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group nowrap">
+        <label for="mutedColor" class="form-label">黑底色块字色:</label>
+        <select id="mutedColor" name="mutedColor" class="form-input">
+            {% for code, label in color_options %}
+            <option value="{{ code }}"{% if code == default_muted %} selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
+        <span style="color: var(--text-primary); font-size:0.9em;">
+            正文色画日期数字和农历小字（建议黑）；强调色画月份名、节日、节气（建议红）；
+            黑底色块字色画「今天」标记和待办标题条（建议黄）。
+            <br>与白底同色的选项会自动改用黑色（标题消失就是这么来的）；与黑底同色的会改用黄色。
+        </span>
+    </div>
+</div>
+
+<div class="form-group">
+    <label class="form-label">显示农历：</label>
+    <div class="toggle-container">
+        <input type="hidden" id="showLunarValue" name="showLunar" value="true">
+        <input type="checkbox" id="showLunar" class="toggle-checkbox" checked>
+        <label for="showLunar" class="toggle-label"></label>
+    </div>
+</div>
+
+<div class="form-group">
+    <label class="form-label">显示节日与节气：</label>
+    <div class="toggle-container">
+        <input type="hidden" id="showFestivalsValue" name="showFestivals" value="true">
+        <input type="checkbox" id="showFestivals" class="toggle-checkbox" checked>
+        <label for="showFestivals" class="toggle-label"></label>
+    </div>
+</div>
+
+<div class="form-group">
+    <label class="form-label">标记有会议的日期：</label>
+    <div class="toggle-container">
+        <input type="hidden" id="showEventMarksValue" name="showEventMarks" value="false">
+        <input type="checkbox" id="showEventMarks" class="toggle-checkbox">
+        <label for="showEventMarks" class="toggle-label"></label>
+    </div>
+</div>
+
+<div class="form-group" id="eventUrlGroup" style="display:none;">
+    <label for="eventCalendarURL" class="form-label">日历订阅（ICS / webcal URL）：</label>
+    <input type="text" id="eventCalendarURL" name="eventCalendarURL" class="form-input" placeholder="https://.../basic.ics">
+</div>
+
+<script>
+    const STORAGE_KEY = 'inkypi.duo_calendar.draft.v3';
+    const LEGACY_KEY = 'inkypi.duo_calendar.draft.v2';
+    let saveTimer = null;
+
+    function syncToggle(checkboxId, valueId) {
+        document.getElementById(valueId).value =
+            document.getElementById(checkboxId).checked ? 'true' : 'false';
+    }
+
+    function toggleEventUrl() {
+        const on = document.getElementById('showEventMarks').checked;
+        syncToggle('showEventMarks', 'showEventMarksValue');
+        document.getElementById('eventUrlGroup').style.display = on ? '' : 'none';
+    }
+
+    function collectValues() {
+        return {
+            customDate: document.getElementById('customDate').value,
+            language: document.getElementById('language').value,
+            layoutMode: document.getElementById('layoutMode').value,
+            todoSource: document.getElementById('todoSource').value,
+            todoTitle: document.getElementById('todoTitle').value,
+            todoText: document.getElementById('todoText').value,
+            backgroundImageURL: document.getElementById('backgroundImageURL').value,
+            backgroundStrength: document.getElementById('backgroundStrength').value,
+            primaryColor: document.getElementById('primaryColor').value,
+            highlightColor: document.getElementById('highlightColor').value,
+            mutedColor: document.getElementById('mutedColor').value,
+            showLunar: document.getElementById('showLunarValue').value,
+            showFestivals: document.getElementById('showFestivalsValue').value,
+            showEventMarks: document.getElementById('showEventMarksValue').value,
+            eventCalendarURL: document.getElementById('eventCalendarURL').value
+        };
+    }
+
+    function scheduleSave() {
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(function () {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(collectValues()));
+            } catch (e) { /* ignore */ }
+        }, 250);
+    }
+
+    function loadDraft() {
+        try {
+            let raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) raw = localStorage.getItem(LEGACY_KEY);
+            return raw ? JSON.parse(raw) : null;
+        } catch (e) { return null; }
+    }
+
+    function applyValues(v) {
+        if (!v) return;
+        if (v.customDate !== undefined) document.getElementById('customDate').value = v.customDate;
+        if (v.language) document.getElementById('language').value = v.language;
+        if (v.layoutMode) document.getElementById('layoutMode').value = v.layoutMode;
+        if (v.todoSource !== undefined) document.getElementById('todoSource').value = v.todoSource;
+        if (v.todoTitle !== undefined) document.getElementById('todoTitle').value = v.todoTitle;
+        if (v.todoText !== undefined) document.getElementById('todoText').value = v.todoText;
+        if (v.backgroundImageURL !== undefined) document.getElementById('backgroundImageURL').value = v.backgroundImageURL;
+        if (v.backgroundStrength !== undefined) document.getElementById('backgroundStrength').value = v.backgroundStrength;
+        if (v.primaryColor) document.getElementById('primaryColor').value = v.primaryColor;
+        if (v.highlightColor) document.getElementById('highlightColor').value = v.highlightColor;
+        if (v.mutedColor) document.getElementById('mutedColor').value = v.mutedColor;
+        if (v.showLunar !== undefined) {
+            document.getElementById('showLunarValue').value = v.showLunar;
+            document.getElementById('showLunar').checked = v.showLunar === 'true';
+        }
+        if (v.showFestivals !== undefined) {
+            document.getElementById('showFestivalsValue').value = v.showFestivals;
+            document.getElementById('showFestivals').checked = v.showFestivals === 'true';
+        }
+        if (v.showEventMarks !== undefined) {
+            document.getElementById('showEventMarksValue').value = v.showEventMarks;
+            document.getElementById('showEventMarks').checked = v.showEventMarks === 'true';
+        }
+        if (v.eventCalendarURL !== undefined) document.getElementById('eventCalendarURL').value = v.eventCalendarURL;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        /* ★ 草稿优先：浏览器里记住的是你最后编辑的版本，
+           刷新页面不会再被「服务器实例里的旧值」盖掉。 */
+        const draft = loadDraft();
+        const hasDraft = !!(draft && Object.keys(draft).length);
+        const server = (typeof pluginSettings !== 'undefined' && pluginSettings) ? pluginSettings : null;
+        const hasServer = !!(server && Object.keys(server).length);
+
+        if (hasDraft) {
+            applyValues(draft);
+        } else {
+            applyValues(server);
+            scheduleSave();
+        }
+
+        ['showLunar', 'showFestivals', 'showEventMarks'].forEach(function (id) {
+            document.getElementById(id).addEventListener('change', function () {
+                syncToggle(id, id + 'Value');
+                scheduleSave();
+            });
+        });
+        document.getElementById('showEventMarks').addEventListener('change', toggleEventUrl);
+        document.querySelectorAll(
+            '#customDate, #language, #layoutMode, #todoSource, #todoTitle, #todoText, ' +
+            '#backgroundImageURL, #backgroundStrength, ' +
+            '#primaryColor, #highlightColor, #mutedColor, #eventCalendarURL'
+        ).forEach(function (el) { el.addEventListener('change', scheduleSave); });
+        document.querySelectorAll('#todoText, #backgroundImageURL')
+            .forEach(function (el) { el.addEventListener('input', scheduleSave); });
+
+        toggleEventUrl();
+    });
+</script>

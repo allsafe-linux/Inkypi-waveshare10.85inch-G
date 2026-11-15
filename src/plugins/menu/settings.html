@@ -1,0 +1,537 @@
+<style>
+    .menu-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        align-items: flex-end;
+        margin-bottom: 0.75rem;
+    }
+    .menu-toolbar .form-group { margin-bottom: 0; flex: 1 1 160px; min-width: 140px; }
+    .menu-toolbar .form-group.narrow { flex: 0 0 auto; min-width: 0; }
+
+    .menu-rows { display: flex; flex-direction: column; gap: 0.4rem; margin: 0.4rem 0 0.8rem; }
+
+    .menu-row {
+        display: grid;
+        grid-template-columns: 110px 1fr 90px 1.6fr 34px;
+        gap: 0.4rem;
+        align-items: center;
+    }
+    .menu-row input { width: 100%; min-width: 0; }
+    .menu-row .menu-del {
+        width: 34px; height: 34px; padding: 0; border-radius: 8px;
+        border: 1px solid #ddd; background: #f6f6f6; cursor: pointer;
+        font-size: 1rem; line-height: 1; color: #a12020;
+    }
+    .menu-row .menu-del:hover { background: #fdecec; }
+
+    .menu-head {
+        display: grid;
+        grid-template-columns: 110px 1fr 90px 1.6fr 34px;
+        gap: 0.4rem;
+        font-size: 0.78rem; color: #888; padding: 0 0 0.15rem;
+    }
+    .menu-head span:nth-child(3) { text-align: right; }
+
+    .menu-actions { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-bottom: 0.5rem; }
+    .menu-note { font-size: 0.8rem; color: #888; }
+
+    @media (max-width: 640px) {
+        .menu-row, .menu-head { grid-template-columns: 1fr 1fr; }
+        .menu-head { display: none; }
+    }
+
+    /* ---------------- 背景外观 ---------------- */
+    .bg-card {
+        border: 1px solid #e5e5e5;
+        border-radius: 10px;
+        padding: 0.75rem 0.85rem;
+        margin: 0.2rem 0 0.9rem;
+        background: rgba(127, 127, 127, 0.05);
+    }
+    .bg-card-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .bg-row { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: flex-end; margin-bottom: 0.45rem; }
+    .bg-row .form-group { margin-bottom: 0; flex: 1 1 150px; min-width: 130px; }
+    .bg-row .form-group.narrow { flex: 0 0 auto; min-width: 0; }
+
+    .bg-pane { display: none; }
+    .bg-pane.active { display: block; }
+
+    .bg-swatches { display: flex; gap: 0.45rem; margin-top: 0.4rem; }
+    .bg-swatch {
+        width: 32px; height: 32px; border-radius: 8px;
+        border: 2px solid #cfcfcf; cursor: pointer; box-sizing: border-box;
+        display: inline-block;
+    }
+    .bg-swatch:hover { border-color: #999; }
+    .bg-swatch.active { border-color: #a12020; box-shadow: 0 0 0 2px rgba(161, 32, 32, 0.22); }
+
+    .bg-slider-wrap { display: flex; align-items: center; gap: 0.7rem; margin-top: 0.55rem; }
+    .bg-slider-wrap label { margin: 0; white-space: nowrap; }
+    .bg-slider-wrap input[type="range"] { flex: 1; min-width: 120px; accent-color: #a12020; }
+    .bg-depth-val {
+        min-width: 3.6rem; text-align: right;
+        font-variant-numeric: tabular-nums; font-weight: 600;
+    }
+
+    .bg-hint { font-size: 0.78rem; color: #8a8a8a; line-height: 1.55; margin-top: 0.35rem; }
+
+    /* 自己的文件选择框要露出来：框架把 .file-upload-input 设成 display:none，
+       自动化工具拿不到 ref，文件就传不上去。 */
+    .bg-file-input {
+        display: inline-block !important;
+        width: auto !important;
+        max-width: 320px !important;
+        height: auto !important;
+        opacity: 1 !important;
+        color: var(--text-primary, #eee) !important;
+        font-size: 0.85rem;
+    }
+</style>
+
+<div class="form-group">
+    <label class="form-label">顶部标题（留空则不显示标题条）</label>
+    <input type="text" id="menuTitle" name="menuTitle" class="form-input" placeholder="例如：今日手冲咖啡单">
+</div>
+
+<div class="menu-toolbar">
+    <div class="form-group">
+        <label class="form-label" for="layoutMode">版式</label>
+        <select id="layoutMode" name="layoutMode" class="form-input">
+            <option value="columns">分栏（一栏一个分类，像菜单板）</option>
+            <option value="grid" selected>网格（菜品平铺成卡片）</option>
+        </select>
+    </div>
+    <div class="form-group narrow">
+        <label class="form-label" for="menuColumns">栏数</label>
+        <select id="menuColumns" name="menuColumns" class="form-input">
+            <option value="auto">自动</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+        </select>
+    </div>
+    <div class="form-group narrow">
+        <label class="form-label" for="priceColor">价格颜色</label>
+        <select id="priceColor" name="priceColor" class="form-input">
+            <option value="red">红（醒目）</option>
+            <option value="black">黑</option>
+        </select>
+    </div>
+    <div class="form-group narrow">
+        <label class="form-label" for="showDesc">显示介绍</label>
+        <select id="showDesc" name="showDesc" class="form-input">
+            <option value="1">显示</option>
+            <option value="0">隐藏</option>
+        </select>
+    </div>
+    <div class="form-group narrow">
+        <label class="form-label" for="showCategory">分类标签</label>
+        <select id="showCategory" name="showCategory" class="form-input">
+            <option value="1">显示（黑底黄字小标）</option>
+            <option value="0">隐藏</option>
+        </select>
+    </div>
+</div>
+
+<div class="bg-card">
+    <div class="bg-card-title">背景外观</div>
+
+    <div class="bg-row">
+        <div class="form-group">
+            <label class="form-label" for="bgSource">背景来源</label>
+            <select id="bgSource" name="bgSource" class="form-input">
+                <option value="color" selected>纯色（最清爽）</option>
+                <option value="gradient">渐变</option>
+                <option value="image">上传图片</option>
+                <option value="url">网络图片（网址）</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="bg-pane" data-pane="color">
+        <div class="bg-row">
+            <div class="form-group">
+                <label class="form-label" for="bgColor">背景颜色</label>
+                <input type="color" id="bgColor" name="bgColor" class="color-picker" value="#ffffff">
+                <div class="bg-swatches">
+                    <span class="bg-swatch" data-color="#ffffff" style="background:#ffffff;" title="白"></span>
+                    <span class="bg-swatch" data-color="#000000" style="background:#000000;" title="黑"></span>
+                    <span class="bg-swatch" data-color="#ffff00" style="background:#ffff00;" title="黄"></span>
+                    <span class="bg-swatch" data-color="#ff0000" style="background:#ff0000;" title="红"></span>
+                </div>
+            </div>
+        </div>
+        <div class="bg-hint">这块屏只有 黑 / 白 / 黄 / 红 四种颜色。上面这四个色是「干净」的，不会抖出网点；别的颜色都会被网点化（浓度越高越明显）。</div>
+    </div>
+
+    <div class="bg-pane" data-pane="gradient">
+        <div class="bg-row">
+            <div class="form-group">
+                <label class="form-label" for="bgGradFrom">起始色</label>
+                <input type="color" id="bgGradFrom" name="bgGradFrom" class="color-picker" value="#ffffff">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="bgGradTo">结束色</label>
+                <input type="color" id="bgGradTo" name="bgGradTo" class="color-picker" value="#ffff00">
+            </div>
+            <div class="form-group narrow">
+                <label class="form-label" for="bgGradDir">方向</label>
+                <select id="bgGradDir" name="bgGradDir" class="form-input">
+                    <option value="v">从上到下</option>
+                    <option value="h">从左到右</option>
+                    <option value="d">斜向</option>
+                </select>
+            </div>
+        </div>
+        <div class="bg-hint">渐变在四色屏上会变成网点渐变。想要干净就把浓度调低，或两端都用接近白的颜色。</div>
+    </div>
+
+    <div class="bg-pane" data-pane="image">
+        <div class="bg-row">
+            <div class="form-group">
+                <label class="form-label" for="bgImageFileInput">选择图片文件</label>
+                <input type="file" id="bgImageFileInput" name="bgImageFile" accept="image/*" class="form-input bg-file-input">
+                <input type="hidden" id="bgImageFilePath" name="bgImageFile" value="">
+                <div class="bg-hint" id="bgImageFileHint">还没选文件。</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-pane" data-pane="url">
+        <div class="bg-row">
+            <div class="form-group">
+                <label class="form-label" for="bgImageURL">图片网址</label>
+                <input type="text" id="bgImageURL" name="bgImageURL" class="form-input" placeholder="https://.../photo.jpg">
+                <div class="bg-hint">图片会下载到设备上并缓存，每小时刷新不会重复下载。国内网络建议用 jsDelivr（cdn.jsdelivr.net）链接；下载失败会自动退回纯色。</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-slider-wrap">
+        <label class="form-label" for="bgDepth">背景浓度</label>
+        <input type="range" id="bgDepth" name="bgDepth" min="0" max="100" step="1" value="0">
+        <span class="bg-depth-val" id="bgDepthVal">0</span>
+    </div>
+    <div class="bg-hint">0 = 纯白底（最清爽）。数值越大背景越浓，网点也越密。照片建议 8~25，否则菜名和介绍会被网点吃掉。</div>
+</div>
+
+<div class="menu-actions">
+    <button type="button" class="header-button" id="menuAddBtn">+ 添加菜品</button>
+    <button type="button" class="header-button" id="menuSampleBtn">填入示例菜单</button>
+    <button type="button" class="header-button" id="menuClearBtn">清空全部</button>
+    <span class="menu-note">填完点下面的 <b>加入播放列表</b>（已有实例则点 <b>立即更新</b>）才会真正保存到设备上；浏览器里也会留一份草稿，刷新不丢。</span>
+</div>
+
+<div class="menu-head"><span>分类</span><span>名称</span><span>价格</span><span>介绍</span><span></span></div>
+<div class="menu-rows" id="menuRows"></div>
+
+<script>
+    (function () {
+        // ★ 草稿 key 带版本号：改过菜单结构后要 bump，否则旧草稿会把新的默认值覆盖回去。
+        //   v2 -> v3：背景从三档下拉换成「四种来源 + 连续浓度滑块」。
+        const DRAFT_KEY = 'inkypi.menu.draft.v3';
+        const OPTION_IDS = [
+            'layoutMode', 'menuColumns', 'priceColor', 'showDesc', 'showCategory',
+            'bgSource', 'bgColor', 'bgGradFrom', 'bgGradTo', 'bgGradDir',
+            'bgImageURL', 'bgDepth'
+        ];
+
+        // 设备上已保存的实例内容 —— 直接用框架在 plugin.html 里注入的全局变量：
+        //   pluginSettings     该实例已保存的全部设置（新建实例时为 {}）
+        //   loadPluginSettings 是否处于「编辑已有实例」模式
+        // 参见 InkyPi 官方 building_plugins.md「Prepopulating forms for Plugin Instances」。
+        // 注意：不要在这里重新声明 const pluginSettings —— 同名 const 重复声明会抛 SyntaxError。
+
+        const rowsBox = document.getElementById('menuRows');
+        const addBtn = document.getElementById('menuAddBtn');
+        const sampleBtn = document.getElementById('menuSampleBtn');
+        const clearBtn = document.getElementById('menuClearBtn');
+        const titleInput = document.getElementById('menuTitle');
+
+        const SAMPLE = [
+            { cat: '咖啡', name: '美式咖啡', price: '18', desc: '双份浓缩，酸甜平衡' },
+            { cat: '咖啡', name: '拿铁', price: '22', desc: '绵密奶泡，坚果尾韵' },
+            { cat: '咖啡', name: '手冲耶加雪菲', price: '38', desc: '柑橘与花香现冲' },
+            { cat: '茶饮', name: '茉莉冷萃', price: '16', desc: '低温泡六小时，清冽回甘' },
+            { cat: '茶饮', name: '桂花乌龙', price: '15', desc: '温热茶香，甜而不腻' },
+            { cat: '轻食', name: '可颂', price: '12', desc: '每日现烤，黄油香' },
+            { cat: '轻食', name: '牛油果三明治', price: '28', desc: '牛油果、鸡蛋、芝麻菜' },
+            { cat: '甜点', name: '巴斯克芝士', price: '26', desc: '焦香表层，内里流心' }
+        ];
+
+        function el(tag, attrs) {
+            const node = document.createElement(tag);
+            Object.keys(attrs || {}).forEach(function (k) { node.setAttribute(k, attrs[k]); });
+            return node;
+        }
+
+        function addRow(data) {
+            data = data || {};
+            const row = el('div', { 'class': 'menu-row' });
+            const cat = el('input', { 'type': 'text', 'name': 'item-cat[]', 'class': 'form-input', placeholder: '分类' });
+            const name = el('input', { 'type': 'text', 'name': 'item-name[]', 'class': 'form-input', placeholder: '名称' });
+            const price = el('input', { 'type': 'text', 'name': 'item-price[]', 'class': 'form-input', placeholder: '18' });
+            const desc = el('input', { 'type': 'text', 'name': 'item-desc[]', 'class': 'form-input', placeholder: '一句话介绍' });
+            const del = el('button', { 'type': 'button', 'class': 'menu-del', title: '删除这一行' });
+            del.textContent = '✕';
+            del.onclick = function () { row.remove(); saveDraft(); };
+
+            cat.value = data.cat || '';
+            name.value = data.name || '';
+            price.value = data.price || '';
+            desc.value = data.desc || '';
+
+            row.appendChild(cat);
+            row.appendChild(name);
+            row.appendChild(price);
+            row.appendChild(desc);
+            row.appendChild(del);
+            rowsBox.appendChild(row);
+            return row;
+        }
+
+        function collectItems() {
+            return Array.prototype.map.call(rowsBox.querySelectorAll('.menu-row'), function (row) {
+                const inputs = row.querySelectorAll('input');
+                return {
+                    cat: inputs[0].value.trim(),
+                    name: inputs[1].value.trim(),
+                    price: inputs[2].value.trim(),
+                    desc: inputs[3].value.trim()
+                };
+            }).filter(function (it) { return it.name; });
+        }
+
+        function readOptions() {
+            const out = {};
+            OPTION_IDS.forEach(function (id) {
+                const node = document.getElementById(id);
+                if (node) { out[id] = node.value; }
+            });
+            return out;
+        }
+
+        function applyOptions(opts) {
+            if (!opts) { return; }
+            OPTION_IDS.forEach(function (id) {
+                const node = document.getElementById(id);
+                // ★ 用 String(...) !== '' 判断，不要用 truthy：
+                //   bgDepth = 0 是合法的「纯白底」，用 truthy 会把它当成「没设」。
+                if (node && opts[id] !== undefined && opts[id] !== null && String(opts[id]) !== '') {
+                    node.value = opts[id];
+                }
+            });
+        }
+
+        function saveDraft() {
+            const data = { items: collectItems(), title: titleInput.value };
+            const opts = readOptions();
+            OPTION_IDS.forEach(function (id) { data[id] = opts[id]; });
+            const filePath = document.getElementById('bgImageFilePath');
+            if (filePath) { data.bgImageFile = filePath.value; }
+            try { localStorage.setItem(DRAFT_KEY, JSON.stringify(data)); } catch (e) { /* 隐私模式忽略 */ }
+        }
+
+        function loadDraft() {
+            try { return JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null'); } catch (e) { return null; }
+        }
+
+        // 设备上已存的平行数组 -> 行
+        function itemsFromSaved() {
+            const names = pluginSettings['item-name[]'] || [];
+            const prices = pluginSettings['item-price[]'] || [];
+            const descs = pluginSettings['item-desc[]'] || [];
+            const cats = pluginSettings['item-cat[]'] || [];
+            const out = [];
+            for (let i = 0; i < names.length; i++) {
+                const name = String(names[i] || '').trim();
+                if (!name) { continue; }
+                out.push({
+                    cat: String(cats[i] || '').trim(),
+                    name: name,
+                    price: String(prices[i] || '').trim(),
+                    desc: String(descs[i] || '').trim()
+                });
+            }
+            return out;
+        }
+
+        // ★ 老实例的背景字段是「三档 bgStrength + 框架的 backgroundOption」，
+        //   新版是「bgSource + 连续 bgDepth」。这里做一次兼容换算，
+        //   否则编辑老实例时来源会掉回默认的「纯色」，把上传的照片悄悄换掉。
+        const LEGACY_DEPTH = { '1': '12', '2': '28', '3': '55' };
+        function deriveBg(data) {
+            const out = {};
+            if (!data) { return out; }
+            if (data.bgSource) {
+                out.bgSource = data.bgSource;
+            } else if (data.backgroundOption) {
+                out.bgSource = data.backgroundOption === 'image' ? 'image' : 'color';
+            }
+            if (data.bgDepth !== undefined && data.bgDepth !== null && String(data.bgDepth) !== '') {
+                out.bgDepth = data.bgDepth;
+            } else if (data.bgStrength) {
+                out.bgDepth = LEGACY_DEPTH[String(data.bgStrength)] || '0';
+            }
+            if (data.bgColor) {
+                out.bgColor = data.bgColor;
+            } else if (data.backgroundColor) {
+                out.bgColor = data.backgroundColor;
+            }
+            return out;
+        }
+
+        function withDerivedBg(data) {
+            const out = {};
+            Object.keys(data || {}).forEach(function (k) { out[k] = data[k]; });
+            const derived = deriveBg(data);
+            Object.keys(derived).forEach(function (k) {
+                if (out[k] === undefined || out[k] === null || out[k] === '') { out[k] = derived[k]; }
+            });
+            return out;
+        }
+
+        function applyFilePath(data) {
+            const hidden = document.getElementById('bgImageFilePath');
+            if (!hidden || !data) { return; }
+            let path = data.bgImageFile || '';
+            if (!path) { path = data.backgroundImageFile || ''; }
+            hidden.value = path;
+        }
+
+        // ---------------- 背景区块的交互 ----------------
+        function syncPanes() {
+            const src = document.getElementById('bgSource');
+            if (!src) { return; }
+            Array.prototype.forEach.call(document.querySelectorAll('.bg-pane'), function (pane) {
+                pane.classList.toggle('active', pane.getAttribute('data-pane') === src.value);
+            });
+        }
+
+        function syncDepth() {
+            const depth = document.getElementById('bgDepth');
+            const label = document.getElementById('bgDepthVal');
+            if (depth && label) { label.textContent = depth.value; }
+        }
+
+        function syncSwatches() {
+            const picker = document.getElementById('bgColor');
+            if (!picker) { return; }
+            const current = String(picker.value || '').toLowerCase();
+            Array.prototype.forEach.call(document.querySelectorAll('.bg-swatch'), function (swatch) {
+                const color = String(swatch.getAttribute('data-color') || '').toLowerCase();
+                swatch.classList.toggle('active', current === color);
+            });
+        }
+
+        function syncFileHint() {
+            const hidden = document.getElementById('bgImageFilePath');
+            const hint = document.getElementById('bgImageFileHint');
+            const picker = document.getElementById('bgImageFileInput');
+            if (!hidden || !hint) { return; }
+            if (picker && picker.files && picker.files.length) {
+                hint.textContent = '已选：' + picker.files[0].name + '（保存后生效）';
+                return;
+            }
+            const path = hidden.value || '';
+            hint.textContent = path ? ('当前使用：' + path.split('/').pop()) : '还没选文件。';
+        }
+
+        // 初始化：编辑已有实例 -> 设备上的内容；否则浏览器草稿；都没有才用示例
+        function init() {
+            if (loadPluginSettings) {
+                if (typeof pluginSettings.menuTitle === 'string') { titleInput.value = pluginSettings.menuTitle; }
+                applyOptions(withDerivedBg(pluginSettings));
+                applyFilePath(pluginSettings);
+                itemsFromSaved().forEach(function (it) { addRow(it); });
+            } else {
+                const draft = loadDraft();
+                if (draft) {
+                    if (typeof draft.title === 'string') { titleInput.value = draft.title; }
+                    applyOptions(withDerivedBg(draft));
+                    applyFilePath(draft);
+                    (draft.items || []).forEach(function (it) { addRow(it); });
+                } else {
+                    SAMPLE.forEach(function (it) { addRow(it); });
+                    if (!titleInput.value) { titleInput.value = '今日菜单'; }
+                }
+            }
+            syncPanes();
+            syncDepth();
+            syncSwatches();
+            syncFileHint();
+        }
+
+        addBtn.onclick = function () { addRow({}); saveDraft(); };
+        sampleBtn.onclick = function () {
+            rowsBox.innerHTML = '';
+            SAMPLE.forEach(function (it) { addRow(it); });
+            if (!titleInput.value) { titleInput.value = '今日菜单'; }
+            saveDraft();
+        };
+        clearBtn.onclick = function () {
+            if (!confirm('确定清空全部菜品？')) { return; }
+            rowsBox.innerHTML = '';
+            saveDraft();
+        };
+
+        rowsBox.addEventListener('input', saveDraft);
+        titleInput.addEventListener('input', saveDraft);
+        OPTION_IDS.forEach(function (id) {
+            const node = document.getElementById(id);
+            if (node) { node.addEventListener('change', saveDraft); }
+        });
+
+        // 分类标签只对网格版式有意义：切到分栏时把它调暗。
+        // ★ 不要 disable —— disabled 的控件不会被表单提交，来回切一次设置就丢了。
+        const layoutSelect = document.getElementById('layoutMode');
+        const catSelect = document.getElementById('showCategory');
+        function syncCategoryOption() {
+            if (!layoutSelect || !catSelect) { return; }
+            const isGrid = layoutSelect.value === 'grid';
+            catSelect.parentElement.style.opacity = isGrid ? '1' : '0.45';
+        }
+        layoutSelect.addEventListener('change', syncCategoryOption);
+
+        // 背景来源切换 -> 显示对应的那一栏
+        const sourceSelect = document.getElementById('bgSource');
+        if (sourceSelect) {
+            sourceSelect.addEventListener('change', function () { syncPanes(); saveDraft(); });
+        }
+
+        // 浓度滑块 -> 实时显示数值
+        const depthSlider = document.getElementById('bgDepth');
+        if (depthSlider) {
+            depthSlider.addEventListener('input', syncDepth);
+            depthSlider.addEventListener('change', saveDraft);
+        }
+
+        // 颜色快捷块（面板四色）
+        Array.prototype.forEach.call(document.querySelectorAll('.bg-swatch'), function (swatch) {
+            swatch.addEventListener('click', function () {
+                const picker = document.getElementById('bgColor');
+                if (!picker) { return; }
+                picker.value = swatch.getAttribute('data-color');
+                syncSwatches();
+                saveDraft();
+            });
+        });
+        const colorPicker = document.getElementById('bgColor');
+        if (colorPicker) {
+            colorPicker.addEventListener('input', syncSwatches);
+            colorPicker.addEventListener('change', saveDraft);
+        }
+
+        // 选文件 -> 提示当前用的是哪个
+        const filePicker = document.getElementById('bgImageFileInput');
+        if (filePicker) {
+            filePicker.addEventListener('change', function () { syncFileHint(); saveDraft(); });
+        }
+
+        init();
+        syncCategoryOption();
+    })();
+</script>
