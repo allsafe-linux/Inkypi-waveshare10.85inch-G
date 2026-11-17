@@ -7682,6 +7682,101 @@ index b48b5d4..1c7fa70 100644
      "class": "Weather"
  }
 \ No newline at end of file
+diff --git a/src/plugins/weather/render/weather.css b/src/plugins/weather/render/weather.css
+index 12f34ac..c8cffa3 100644
+--- a/src/plugins/weather/render/weather.css
++++ b/src/plugins/weather/render/weather.css
+@@ -330,3 +330,90 @@
+     font-family: "Dogica";
+   }
+ }
++
++/* ============================================================
++   微雪 10.85 寸四色 e-Paper (G) 专用修正 —— 预报卡片重叠修复
++   追加于上游 weather.css 之后，不改动上游任何原有规则。
++
++   问题：.forecast-day 的三个子元素同时写了 flex:1 + height:100% +
++        min-height:0，在固定高度的卡片里抢不到剩余空间，
++        实测被压成 name 6.0px / icon 40.1px / temps 7.1px，
++        而文字实际需要 16.8px / 14.4px → 文字溢出盒子画到邻居身上：
++          1) 天气图标压住星期名（"Wed" 被云盖住）
++          2) .separator 分隔线横穿温度数字（"14° / 6°" 被线切开）
++   另发现：上游仓库根本没有 src/static/scripts/chart.js，
++          .chart-container 这 115px 永远画不出东西（每小时曲线从未生效），
++          这里把它回收给预报行，让屏幕中间的空白不再空着。
++
++   修法：子元素一律 flex:0 0 auto + 明确高度；
++        卡片宽度钉回 12.5vw（否则图标一改宽度，卡片会缩成 90px）；
++        三段行高全部钉死，不再互相抢空间。
++   配色：4 色屏上 #AAA 会被 Floyd-Steinberg 抖成噪点，分隔线改纯黑 1px。
++   ============================================================ */
++
++.chart-container {
++    height: 0;
++    overflow: hidden;
++}
++
++.today-container {
++    flex: 0 0 180px;
++}
++
++.forecast {
++    flex: 0 0 160px;
++}
++
++.forecast-day {
++    width: 12.5vw;
++    height: 160px;
++    padding: 0.4dvh 0.5vw;
++    gap: 0.3dvh;
++    justify-content: space-evenly;
++    overflow: hidden;
++}
++
++.forecast-day-name {
++    flex: 0 0 auto;
++    height: auto;
++    line-height: 1.05;
++}
++
++.forecast-icon {
++    flex: 0 0 auto;
++    width: auto;
++    height: 60px;
++    max-width: 100%;
++    padding: 0;
++    object-fit: contain;
++}
++
++.forecast-temps {
++    flex: 0 0 auto;
++    height: auto;
++    line-height: 1.2;
++}
++
++/* 4 色墨水屏上 #AAA 会被抖成噪点，直接用纯黑 1px */
++.separator {
++    flex: 0 0 auto;
++    height: 0;
++    border-top: 1px solid #000;
++    width: 86%;
++    margin: 0 auto;
++}
++
++.moon-phase-container {
++    flex: 0 0 auto;
++    gap: 0.6vw;
++    align-items: center;
++}
++
++.moon-phase-icon {
++    flex: 0 0 auto;
++    width: auto;
++    height: auto;
++    max-width: 2.1dvw;
++    padding: 0;
++    object-fit: contain;
++}
 diff --git a/src/plugins/weather/settings.html b/src/plugins/weather/settings.html
 index 087fc04..92e28e0 100644
 --- a/src/plugins/weather/settings.html
