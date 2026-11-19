@@ -7683,10 +7683,10 @@ index b48b5d4..1c7fa70 100644
  }
 \ No newline at end of file
 diff --git a/src/plugins/weather/render/weather.css b/src/plugins/weather/render/weather.css
-index 12f34ac..c8cffa3 100644
+index 12f34ac..2ec4da3 100644
 --- a/src/plugins/weather/render/weather.css
 +++ b/src/plugins/weather/render/weather.css
-@@ -330,3 +330,90 @@
+@@ -330,3 +330,164 @@
      font-family: "Dogica";
    }
  }
@@ -7776,6 +7776,80 @@ index 12f34ac..c8cffa3 100644
 +    max-width: 2.1dvw;
 +    padding: 0;
 +    object-fit: contain;
++}
++
++/* ============================================================
++   微雪 10.85 寸四色 e-Paper (G) 专用修正 —— 版面四周边距与标题位置
++   追加于上游 weather.css 之后，不改动上游任何原有规则。
++
++   问题：
++     1) 整体画面偏下，标题「苏州天气预报」上沿离屏顶 38px，空档过大；
++     2) 四边留白偏松（左/右各 25px），内容块被 padding 1.5vw + margin 5px
++        夹在中间，底部又比顶部挤。
++   做法：
++     1) body 的 padding 收紧成 上16 右14 下28 左14（!important 覆盖框架层
++        plugin.html 里的内联 padding: 1.5vw）；
++     2) .weather-dashboard 改 space-between，三个模块（标题区 / 当前天气区 /
++        预报行）在垂直方向上均匀分散对齐；
++     3) .header 收成 50% 宽并 align-self: flex-start —— 标题和日期整块
++        移到左半屏居中，正好落在左侧原本空着的区域；
++     4) .title 改 height:auto —— 标题文字贴着标题区顶部排，上沿从 38px
++        收到 19px。
++
++   注意：角标（.corner-frame 的 :before/:after）定位在 body 的 padding box
++        上，只跟 margin 走、**不跟 padding 走**，所以改 padding 边框角标
++        原地不动（实测角标首行仍是 y=5）。
++   注意：.header 上游带 container-type: size，其高度由 15dvh 决定，
++        **不能改成 height:auto**（实测会塌成 0、标题整块消失）。
++   ============================================================ */
++
++body {
++    padding: 16px 14px 28px 14px !important;
++}
++
++.weather-dashboard {
++    justify-content: space-between;
++}
++
++.header {
++    width: 50%;
++    align-self: flex-start;
++    justify-content: space-between;
++}
++
++.title {
++    height: auto;
++}
++
++/* ============================================================
++   微雪 10.85 寸四色 e-Paper (G) 专用修正 —— 右侧指标三行上提
++   追加于上一个「版面四周边距与标题位置」修正块之后。
++
++   需求：右侧 Sunrise/Sunset/Wind、Humidity/Pressure/UV Index、
++        Visibility/Air Quality 这三行整体往上提。
++
++   实现：
++     .today-container 上游带 overflow:hidden，会把上提后超出上边界的
++     第一行裁掉（实测 Sunrise/Sunset/Wind 的标签被切）。改为
++     overflow:visible 解除裁剪。
++     ★ 但 overflow 一旦不是 hidden，flex item 的 min-height:auto 就会
++       变成「内容最小高度」，容器会被图标自然尺寸(250px)撑到 303px，
++       整个版面跟着散架 —— 所以必须同时显式钉 min-height:0，
++       让容器高度仍锁在 180px。
++     ★ .current-temperature 自带 overflow:hidden，左半边的天气大图标
++       依旧被它自己裁剪，图标尺寸不会变。
++
++     .data-points 用 transform 整体上提 22px（transform 不影响布局，
++     不会牵动其它模块）。
++   ============================================================ */
++
++.today-container {
++    overflow: visible;
++    min-height: 0;
++}
++
++.data-points {
++    transform: translateY(-22px);
 +}
 diff --git a/src/plugins/weather/settings.html b/src/plugins/weather/settings.html
 index 087fc04..92e28e0 100644
