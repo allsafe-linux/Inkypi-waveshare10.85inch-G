@@ -7851,6 +7851,37 @@ index 12f34ac..2ec4da3 100644
 +.data-points {
 +    transform: translateY(-22px);
 +}
+diff --git a/src/plugins/weather/render/weather.html b/src/plugins/weather/render/weather.html
+index 2be9e3a..8633fd7 100644
+--- a/src/plugins/weather/render/weather.html
++++ b/src/plugins/weather/render/weather.html
+@@ -6,7 +6,7 @@
+ 
+ <div class="weather-dashboard">
+   {% if plugin_settings.displayRefreshTime == "true" %}
+-  <div class="last-refresh">Last refresh: {{ last_refresh_time }}</div>
++  <div class="last-refresh">最后刷新：{{ last_refresh_time }}</div>
+   {% endif %}
+   <!-- Current Date -->
+   <div class="header">
+@@ -21,7 +21,7 @@
+         <img class="current-icon" src="{{current_day_icon}}" alt="Current Weather Icon">
+         <div class="current-weather">
+           <div class="current-temp">{{ current_temperature }}<span class="temperature-unit">{{temperature_unit}}</span></div>
+-          <div class="feels-like">Feels Like {{ feels_like }}{% if units != "standard" %}°{% endif %}</div>
++          <div class="feels-like">体感 {{ feels_like }}{% if units != "standard" %}°{% endif %}</div>
+           <div class="min-max">{{ forecast[0].high }}{% if units != "standard" %}°{% endif %} / {{ forecast[0].low }}{% if units != "standard" %}°{% endif %}</div>
+         </div>
+     </div>
+@@ -38,7 +38,7 @@
+             <div class="data-point-label">{{ dp.label }}</div>
+             <div class="data-point-measurement">
+ 			        {{ dp.measurement }}{% if dp.unit %}<span class="data-point-unit">{{ dp.unit }}</span>{% endif %}
+-              {% if dp.label == "Wind" %}
++              {% if dp.label == "风速" %}
+                 <span class="wind-arrow-symbol">{{ dp.arrow }}</span>
+               {% endif %}
+ 		    	 </div>
 diff --git a/src/plugins/weather/settings.html b/src/plugins/weather/settings.html
 index 087fc04..92e28e0 100644
 --- a/src/plugins/weather/settings.html
@@ -7998,6 +8029,254 @@ index 087fc04..92e28e0 100644
 +        <button id="closeMap" class="action-button">保存</button>
      </div>
  </div>
+ 
+diff --git a/src/plugins/weather/weather.py b/src/plugins/weather/weather.py
+index 4ad9830..c1bebc3 100644
+--- a/src/plugins/weather/weather.py
++++ b/src/plugins/weather/weather.py
+@@ -10,7 +10,21 @@ from io import BytesIO
+ import math
+ 
+ logger = logging.getLogger(__name__)
+-        
++
++# ===== 微雪 10.85 寸四色屏本地汉化（2026-11-19）=====
++WEEKDAY_CN = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
++
++
++def weekday_cn(dt) -> str:
++    """把 date/datetime 转成中文星期（周三）。"""
++    return WEEKDAY_CN[dt.weekday()]
++
++
++def format_date_cn(dt) -> str:
++    """把 datetime 转成中文日期（11月19日 周四）。"""
++    return f"{dt.month}月{dt.day}日 {weekday_cn(dt)}"
++
++
+ def get_moon_phase_name(phase_age: float) -> str:
+     """Determines the name of the lunar phase based on the age of the moon."""
+     PHASES_THRESHOLDS = [
+@@ -155,7 +169,7 @@ class Weather(BasePlugin):
+             if current_icon.endswith('n'):
+                 current_icon = current_icon.replace("n", "d")
+         data = {
+-            "current_date": dt.strftime("%A, %B %d"),
++            "current_date": format_date_cn(dt),
+             "current_day_icon": self.get_plugin_dir(f'icons/{current_icon}.png'),
+             "current_temperature": str(round(current.get("temp"))),
+             "feels_like": str(round(current.get("feels_like"))),
+@@ -180,7 +194,7 @@ class Weather(BasePlugin):
+         temperature_conversion = 273.15 if units == "standard" else 0.
+ 
+         data = {
+-            "current_date": dt.strftime("%A, %B %d"),
++            "current_date": format_date_cn(dt),
+             "current_day_icon": self.get_plugin_dir(f'icons/{current_icon}.png'),
+             "current_temperature": str(round(current.get("temperature", 0) + temperature_conversion)),
+             "feels_like": str(round(current.get("apparent_temperature", current.get("temperature", 0)) + temperature_conversion)),
+@@ -316,7 +330,7 @@ class Weather(BasePlugin):
+ 
+             # --- date & temps ---
+             dt = datetime.fromtimestamp(day["dt"], tz=timezone.utc).astimezone(tz)
+-            day_label = dt.strftime("%a")
++            day_label = weekday_cn(dt)
+ 
+             forecast.append(
+                 {
+@@ -347,7 +361,7 @@ class Weather(BasePlugin):
+ 
+         for i in range(0, len(times)): 
+             local_date = date.fromisoformat(times[i])
+-            day_label = local_date.strftime("%a")
++            day_label = weekday_cn(local_date)
+             code = weather_codes[i] if i < len(weather_codes) else 0
+             weather_icon = self.map_weather_code_to_icon(code, is_day=1)
+             weather_icon_path = self.get_plugin_dir(f"icons/{weather_icon}.png")
+@@ -476,7 +490,7 @@ class Weather(BasePlugin):
+         if sunrise_epoch:
+             sunrise_dt = datetime.fromtimestamp(sunrise_epoch, tz=timezone.utc).astimezone(tz)
+             data_points.append({
+-                "label": "Sunrise",
++                "label": "日出",
+                 "measurement": self.format_time(sunrise_dt, time_format, include_am_pm=False),
+                 "unit": "" if time_format == "24h" else sunrise_dt.strftime('%p'),
+                 "icon": self.get_plugin_dir('icons/sunrise.png')
+@@ -488,7 +502,7 @@ class Weather(BasePlugin):
+         if sunset_epoch:
+             sunset_dt = datetime.fromtimestamp(sunset_epoch, tz=timezone.utc).astimezone(tz)
+             data_points.append({
+-                "label": "Sunset",
++                "label": "日落",
+                 "measurement": self.format_time(sunset_dt, time_format, include_am_pm=False),
+                 "unit": "" if time_format == "24h" else sunset_dt.strftime('%p'),
+                 "icon": self.get_plugin_dir('icons/sunset.png')
+@@ -499,7 +513,7 @@ class Weather(BasePlugin):
+         wind_deg = weather.get('current', {}).get("wind_deg", 0)
+         wind_arrow = self.get_wind_arrow(wind_deg)
+         data_points.append({
+-            "label": "Wind",
++            "label": "风速",
+             "measurement": weather.get('current', {}).get("wind_speed"),
+             "unit": UNITS[units]["speed"],
+             "icon": self.get_plugin_dir('icons/wind.png'),
+@@ -507,21 +521,21 @@ class Weather(BasePlugin):
+         })
+ 
+         data_points.append({
+-            "label": "Humidity",
++            "label": "湿度",
+             "measurement": weather.get('current', {}).get("humidity"),
+             "unit": '%',
+             "icon": self.get_plugin_dir('icons/humidity.png')
+         })
+ 
+         data_points.append({
+-            "label": "Pressure",
++            "label": "气压",
+             "measurement": weather.get('current', {}).get("pressure"),
+             "unit": 'hPa',
+             "icon": self.get_plugin_dir('icons/pressure.png')
+         })
+ 
+         data_points.append({
+-            "label": "UV Index",
++            "label": "紫外线",
+             "measurement": weather.get('current', {}).get("uvi"),
+             "unit": '',
+             "icon": self.get_plugin_dir('icons/uvi.png')
+@@ -540,7 +554,7 @@ class Weather(BasePlugin):
+         if at_max_visibility:
+             visibility_str = u"\u2265" + visibility_str
+         data_points.append({
+-            "label": "Visibility",
++            "label": "能见度",
+             "measurement": visibility_str,
+             "unit": UNITS[units]["distance"],
+             "icon": self.get_plugin_dir('icons/visibility.png')
+@@ -548,9 +562,9 @@ class Weather(BasePlugin):
+ 
+         aqi = air_quality.get('list', [])[0].get("main", {}).get("aqi")
+         data_points.append({
+-            "label": "Air Quality",
++            "label": "空气质量",
+             "measurement": aqi,
+-            "unit": ["Good", "Fair", "Moderate", "Poor", "Very Poor"][int(aqi)-1],
++            "unit": ["优", "良", "中等", "差", "很差"][int(aqi)-1],
+             "icon": self.get_plugin_dir('icons/aqi.png')
+         })
+ 
+@@ -570,7 +584,7 @@ class Weather(BasePlugin):
+         if sunrise_times:
+             sunrise_dt = datetime.fromisoformat(sunrise_times[0]).astimezone(tz)
+             data_points.append({
+-                "label": "Sunrise",
++                "label": "日出",
+                 "measurement": self.format_time(sunrise_dt, time_format, include_am_pm=False),
+                 "unit": "" if time_format == "24h" else sunrise_dt.strftime('%p'),
+                 "icon": self.get_plugin_dir('icons/sunrise.png')
+@@ -583,7 +597,7 @@ class Weather(BasePlugin):
+         if sunset_times:
+             sunset_dt = datetime.fromisoformat(sunset_times[0]).astimezone(tz)
+             data_points.append({
+-                "label": "Sunset",
++                "label": "日落",
+                 "measurement": self.format_time(sunset_dt, time_format, include_am_pm=False),
+                 "unit": "" if time_format == "24h" else sunset_dt.strftime('%p'),
+                 "icon": self.get_plugin_dir('icons/sunset.png')
+@@ -597,12 +611,12 @@ class Weather(BasePlugin):
+         wind_arrow = self.get_wind_arrow(wind_deg)
+         wind_unit = UNITS[units]["speed"]
+         data_points.append({
+-            "label": "Wind", "measurement": wind_speed, "unit": wind_unit,
++            "label": "风速", "measurement": wind_speed, "unit": wind_unit,
+             "icon": self.get_plugin_dir('icons/wind.png'), "arrow": wind_arrow
+         })
+ 
+         # Humidity
+-        current_humidity = "N/A"
++        current_humidity = "—"
+         humidity_hourly_times = hourly_data.get('time', [])
+         humidity_values = hourly_data.get('relative_humidity_2m', [])
+         for i, time_str in enumerate(humidity_hourly_times):
+@@ -614,12 +628,12 @@ class Weather(BasePlugin):
+                 logger.warning(f"Could not parse time string {time_str} for humidity.")
+                 continue
+         data_points.append({
+-            "label": "Humidity", "measurement": current_humidity, "unit": '%',
++            "label": "湿度", "measurement": current_humidity, "unit": '%',
+             "icon": self.get_plugin_dir('icons/humidity.png')
+         })
+ 
+         # Pressure
+-        current_pressure = "N/A"
++        current_pressure = "—"
+         pressure_hourly_times = hourly_data.get('time', [])
+         pressure_values = hourly_data.get('surface_pressure', [])
+         for i, time_str in enumerate(pressure_hourly_times):
+@@ -631,14 +645,14 @@ class Weather(BasePlugin):
+                 logger.warning(f"Could not parse time string {time_str} for pressure.")
+                 continue
+         data_points.append({
+-            "label": "Pressure", "measurement": current_pressure, "unit": 'hPa',
++            "label": "气压", "measurement": current_pressure, "unit": 'hPa',
+             "icon": self.get_plugin_dir('icons/pressure.png')
+         })
+ 
+         # UV Index
+         uv_index_hourly_times = aqi_data.get('hourly', {}).get('time', [])
+         uv_index_values = aqi_data.get('hourly', {}).get('uv_index', [])
+-        current_uv_index = "N/A"
++        current_uv_index = "—"
+         for i, time_str in enumerate(uv_index_hourly_times):
+             try:
+                 if datetime.fromisoformat(time_str).astimezone(tz).hour == current_time.hour:
+@@ -648,12 +662,12 @@ class Weather(BasePlugin):
+                 logger.warning(f"Could not parse time string {time_str} for UV Index.")
+                 continue
+         data_points.append({
+-            "label": "UV Index", "measurement": current_uv_index, "unit": '',
++            "label": "紫外线", "measurement": current_uv_index, "unit": '',
+             "icon": self.get_plugin_dir('icons/uvi.png')
+         })
+ 
+         # Visibility
+-        current_visibility = "N/A"
++        current_visibility = "—"
+         visibility_hourly_times = hourly_data.get('time', [])
+         visibility_values = hourly_data.get('visibility', [])
+         if units == "imperial":
+@@ -675,7 +689,7 @@ class Weather(BasePlugin):
+         if at_max_visibility:
+             visibility_str = u"\u2265" + visibility_str
+         data_points.append({
+-            "label": "Visibility", 
++            "label": "能见度",
+             "measurement": visibility_str, 
+             "unit": UNITS[units]["distance"],
+             "icon": self.get_plugin_dir('icons/visibility.png')
+@@ -684,7 +698,7 @@ class Weather(BasePlugin):
+         # Air Quality
+         aqi_hourly_times = aqi_data.get('hourly', {}).get('time', [])
+         aqi_values = aqi_data.get('hourly', {}).get('european_aqi', [])
+-        current_aqi = "N/A"
++        current_aqi = "—"
+         for i, time_str in enumerate(aqi_hourly_times):
+             try:
+                 if datetime.fromisoformat(time_str).astimezone(tz).hour == current_time.hour:
+@@ -694,10 +708,10 @@ class Weather(BasePlugin):
+                 logger.warning(f"Could not parse time string {time_str} for AQI.")
+                 continue
+         scale = ""
+-        if current_aqi and current_aqi != "N/A":
+-            scale = ["Good","Fair","Moderate","Poor","Very Poor","Ext Poor"][min(current_aqi//20,5)]
++        if current_aqi and current_aqi != "—":
++            scale = ["优","良","中等","差","很差","极差"][min(current_aqi//20,5)]
+         data_points.append({
+-            "label": "Air Quality", "measurement": current_aqi,
++            "label": "空气质量", "measurement": current_aqi,
+             "unit": scale, "icon": self.get_plugin_dir('icons/aqi.png')
+         })
  
 diff --git a/src/plugins/wifi_setup/icon.png b/src/plugins/wifi_setup/icon.png
 new file mode 100644
